@@ -1,0 +1,204 @@
+package com.stockistas.stockistas2025.Service;
+import com.stockistas.stockistas2025.Dto.OrdenCompraDTO;
+import com.stockistas.stockistas2025.Entity.*;
+import com.stockistas.stockistas2025.Repository.*;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+public class OrdenCompraService {
+
+    private final ArticuloRepository articuloRepository;
+    private final ProveedorRepository proveedorRepository;
+    private final OrdenCompraRepository ordenCompraRepository;
+    private final EstadoOCRepository estadoOCRepository;
+    private final ArticuloProveedorRepository articuloProveedorRepository;
+    private final DetalleOrdenCompraRepository detalleOrdenCompraRepository;
+
+    /**
+     * Genera automáticamente una Orden de Compra si el artículo requiere reposición
+     * y no hay otra orden en curso (Pendiente o Enviada) para ese artículo.
+     */
+    public Optional<OrdenCompra> generarOrdenCompraSiCorresponde(Integer codArticulo) {
+        Articulo articulo = articuloRepository.findById(codArticulo)
+                .orElseThrow(() -> new EntityNotFoundException("Artículo no encontrado"));
+
+        System.out.println("SE ENCONTRÓ EL ARTICULO");
+        // Obtener relación Artículo-Proveedor predeterminado
+        ArticuloProveedor relacion = articuloProveedorRepository
+                .findByArticuloAndProveedor(articulo, articulo.getProveedorPredeterminado())
+                .orElseThrow(() -> new RuntimeException("No existe relación válida con proveedor predeterminado"));
+        System.out.println("SE ENCONTRÓ ARTICULOPROVEEDOR");
+
+
+        // Verificar si ya existe una OC con ese Articulo en estado Pendiente (1) o Enviada (2)
+        boolean existeOrdenEnProceso = detalleOrdenCompraRepository.existsByArticuloProveedorAndOrdenCompra_Estado_CodEstadoOCIn(
+                relacion, List.of(1, 2));
+
+        if (existeOrdenEnProceso) return Optional.empty();
+        System.out.println("NO EXISTE ORDEN EN PROCESO");
+
+        // Calcular faltante
+        int cantidadFaltante = calcularFaltanteSegunModelo(articulo);
+        if (cantidadFaltante <= 0) return Optional.empty();
+        System.out.println("SI TENEMOS CANTIDAD FALTANTE");
+
+        // Obtener estado PENDIENTE (código 1)
+        EstadoOC estadoPendiente = estadoOCRepository.findById(1)
+                .orElseThrow(() -> new EntityNotFoundException("Estado PENDIENTE no encontrado"));
+
+        // Crear OrdenCompra
+        OrdenCompra oc = OrdenCompra.builder()
+                .proveedor(articulo.getProveedorPredeterminado())
+                .estado(estadoPendiente)
+                .cantArt(cantidadFaltante)
+                .build();
+
+        // Calcular subtotales
+        BigDecimal subtotalUnitario = relacion.getPrecioUnitario().add(relacion.getCargosPedido());
+
+        // Crear detalles, uno por unidad faltante
+        List<DetalleOrdenCompra> detalles = new ArrayList<>();
+        for (int i = 0; i < cantidadFaltante; i++) {
+            detalles.add(DetalleOrdenCompra.builder()
+                    .ordenCompra(oc)
+                    .articuloProveedor(relacion)
+                    .subTotal(subtotalUnitario)
+                    .build());
+        }
+
+        // Calcular monto total
+        BigDecimal montoTotal = subtotalUnitario.multiply(BigDecimal.valueOf(cantidadFaltante));
+        oc.setDetalles(detalles);
+        oc.setMontoCompra(montoTotal);
+
+        // Guardar en cascada
+        OrdenCompra guardada = ordenCompraRepository.save(oc);
+        return Optional.of(guardada);
+    }
+
+    private int calcularFaltanteSegunModelo(Articulo articulo) {
+        int stockActual = articulo.getStockActual();
+        ModeloInventario modelo = articulo.getModeloInventario();
+
+        if (modelo == ModeloInventario.LOTEFIJO) {
+            int puntoDePedido = articulo.getPuntoPedido();
+            if (stockActual <= puntoDePedido) {
+                int loteOptimo = articulo.getLoteOptimo();
+                System.out.println("EL LOTE OPTIMO QUE TENEMOS ES:"+loteOptimo);
+                System.out.println("EL STOCK ACTUAL QUE TENEMOS ES:"+stockActual);
+                return loteOptimo - stockActual;
+            } else {
+                return 0;
+            }
+        } else if (modelo == ModeloInventario.INTERVALOFIJO) {
+            int stockSeguridad = articulo.getStockSeguridadIF();
+            if (stockActual <= stockSeguridad) {
+                int inventarioMaximo = articulo.getInventarioMax();
+                return inventarioMaximo - stockActual;
+            } else {
+                return 0;
+            }
+        }
+        return 0; // por seguridad
+    }
+
+    public OrdenCompra crearOrdenCompraManual(OrdenCompraDTO dto) {
+        Articulo articulo = articuloRepository.findById(dto.getCodArticulo())
+                .orElseThrow(() -> new EntityNotFoundException("Artículo no encontrado"));
+
+        Proveedor proveedor = articulo.getProveedorPredeterminado(); // sugerido
+        if (dto.getCodProveedor() != null) {
+            proveedor = proveedorRepository.findById(dto.getCodProveedor())
+                    .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
+        }
+
+        ArticuloProveedor relacion = articuloProveedorRepository
+                .findByArticuloAndProveedor(articulo, proveedor)
+                .orElseThrow(() -> new RuntimeException("No existe relación válida entre artículo y proveedor"));
+
+        EstadoOC estadoPendiente = estadoOCRepository.findById(1)
+                .orElseThrow(() -> new EntityNotFoundException("Estado PENDIENTE no encontrado"));
+
+        int cantidad = dto.getCantidad() != null ? dto.getCantidad() : articulo.getLoteOptimo();
+
+        BigDecimal subtotalUnitario = relacion.getPrecioUnitario().add(relacion.getCargosPedido());
+
+        OrdenCompra oc = OrdenCompra.builder()
+                .proveedor(proveedor)
+                .estado(estadoPendiente)
+                .cantArt(cantidad)
+                .build();
+
+        List<DetalleOrdenCompra> detalles = new ArrayList<>();
+        for (int i = 0; i < cantidad; i++) {
+            detalles.add(DetalleOrdenCompra.builder()
+                    .ordenCompra(oc)
+                    .articuloProveedor(relacion)
+                    .subTotal(subtotalUnitario)
+                    .build());
+        }
+
+        BigDecimal montoTotal = subtotalUnitario.multiply(BigDecimal.valueOf(cantidad));
+        oc.setDetalles(detalles);
+        oc.setMontoCompra(montoTotal);
+
+        return ordenCompraRepository.save(oc);
+    }
+
+    public void cancelarOrdenCompra(Integer id) {
+        OrdenCompra oc = ordenCompraRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Orden de Compra no encontrada"));
+
+        if (oc.getEstado().getCodEstadoOC() != 1)
+            throw new IllegalStateException("Solo se pueden cancelar órdenes en estado PENDIENTE");
+
+        EstadoOC estadoCancelada = estadoOCRepository.findById(3)
+                .orElseThrow(() -> new EntityNotFoundException("Estado CANCELADA no encontrado"));
+
+        oc.setEstado(estadoCancelada);
+        ordenCompraRepository.save(oc);
+    }
+
+    public void enviarOrdenCompra(Integer id) {
+        OrdenCompra oc = ordenCompraRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Orden de Compra no encontrada"));
+
+        EstadoOC estadoEnviada = estadoOCRepository.findById(2)
+                .orElseThrow(() -> new EntityNotFoundException("Estado ENVIADA no encontrado"));
+
+        oc.setEstado(estadoEnviada);
+        ordenCompraRepository.save(oc);
+    }
+
+    public void finalizarOrdenCompra(Integer id) {
+        OrdenCompra oc = ordenCompraRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Orden de Compra no encontrada"));
+
+        EstadoOC estadoFinalizada = estadoOCRepository.findById(4)
+                .orElseThrow(() -> new EntityNotFoundException("Estado FINALIZADA no encontrado"));
+
+        oc.setEstado(estadoFinalizada);
+        ordenCompraRepository.save(oc);
+
+        // Sumar artículos al inventario
+        for (DetalleOrdenCompra detalle : oc.getDetalles()) {
+            Articulo articulo = detalle.getArticuloProveedor().getArticulo();
+            articulo.setStockActual(articulo.getStockActual() + 1);
+            articuloRepository.save(articulo);
+
+            // Verificar si sigue bajo punto de pedido
+            if (articulo.getModeloInventario() == ModeloInventario.LOTEFIJO
+                    && articulo.getStockActual() <= articulo.getPuntoPedido()) {
+                System.out.println("⚠ Artículo " + articulo.getDescripArt() + " sigue bajo punto de pedido.");
+            }
+        }
+    }
+}
