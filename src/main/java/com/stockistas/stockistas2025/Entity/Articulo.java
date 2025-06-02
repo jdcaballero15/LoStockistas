@@ -33,6 +33,7 @@ public class Articulo {
     private Integer inventarioMax;
     private Integer stockSeguridadLF;
     private Integer stockSeguridadIF;
+    private String urlImagen;
 
     @ManyToOne
     @JoinColumn(name = "proveedor_id", nullable = false)

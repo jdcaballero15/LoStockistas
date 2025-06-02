@@ -9,6 +9,9 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
@@ -53,5 +56,53 @@ public class ArticuloService {
         return demanda.multiply(dto.getCostoCompra())
                 .add(dto.getCostoPedido())
                 .add(dto.getCostoAlmacenamiento());
+    }
+
+    public List<Articulo> getAll() {
+        return articuloRepository.findAll();
+    }
+
+    public Articulo getById(Integer id) {
+        return articuloRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Artículo no encontrado"));
+    }
+
+    public Articulo update(Integer id, Articulo articulo) {
+        Articulo existente = getById(id);
+        existente.setNombreArt(articulo.getNombreArt());
+        existente.setDescripArt(articulo.getDescripArt());
+        existente.setDemandaAnual(articulo.getDemandaAnual());
+        existente.setCostoAlmacenamiento(articulo.getCostoAlmacenamiento());
+        existente.setCostoPedido(articulo.getCostoPedido());
+        existente.setCostoCompra(articulo.getCostoCompra());
+        existente.setStockActual(articulo.getStockActual());
+        existente.setProveedorPredeterminado(articulo.getProveedorPredeterminado());
+        existente.setModeloInventario(articulo.getModeloInventario());
+        return articuloRepository.save(existente);
+    }
+
+    public void delete(Integer codArticulo) {
+        Articulo articulo = articuloRepository.findById(codArticulo)
+                .orElseThrow(() -> new EntityNotFoundException("Artículo con ID " + codArticulo + " no encontrado"));
+
+        // 1. Verificar si tiene stock
+        if (articulo.getStockActual() != null && articulo.getStockActual() > 0) {
+            throw new IllegalStateException("No se puede dar de baja: el artículo tiene unidades en stock.");
+        }
+
+        // 2. Verificar si tiene órdenes de compra en estado pendiente o enviada
+        boolean tieneOrdenesRelacionadas = articulo.getRelacionesConProveedores().stream()
+                .anyMatch(ap -> detalleOrdenCompraRepository.existsByArticuloProveedorAndOrdenCompra_Estado_CodEstadoOCIn(
+                        ap,
+                        List.of(1, 2) // Suponiendo que 1 = PENDIENTE, 2 = ENVIADA
+                ));
+
+        if (tieneOrdenesRelacionadas) {
+            throw new IllegalStateException("No se puede dar de baja: el artículo tiene órdenes de compra pendientes o enviadas.");
+        }
+
+        // 3. Dar de baja (baja lógica)
+        articulo.setFechaHoraBajaArticulo(LocalDateTime.now());
+        articuloRepository.save(articulo);
     }
 }
