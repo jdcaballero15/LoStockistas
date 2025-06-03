@@ -18,7 +18,7 @@ public class ArticuloController {
     private final ArticuloService articuloService;
 
     @GetMapping
-    public ResponseEntity<List<Articulo>> getAll() {
+    public ResponseEntity<List<ArticuloDTO>> getAll() {
         return ResponseEntity.ok(articuloService.getAll());
     }
 

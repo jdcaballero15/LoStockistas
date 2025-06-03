@@ -3,7 +3,7 @@ package com.stockistas.stockistas2025.Service;
 import com.stockistas.stockistas2025.Dto.ArticuloProveedorDTO;
 import com.stockistas.stockistas2025.Dto.ArticuloProveedorResponseDTO;
 import com.stockistas.stockistas2025.Dto.ProveedorDTO;
-import com.stockistas.stockistas2025.Dto.ProveedorDTOO;
+import com.stockistas.stockistas2025.Dto.ProveedorDTOOutput;
 import com.stockistas.stockistas2025.Entity.Articulo;
 import com.stockistas.stockistas2025.Entity.ArticuloProveedor;
 import com.stockistas.stockistas2025.Entity.Proveedor;
@@ -99,9 +99,9 @@ public class ProveedorService {
                 })
                 .collect(Collectors.toList());
     }
-    public List<ProveedorDTOO> getAll() {
+    public List<ProveedorDTOOutput> getAll() {
         return proveedorRepository.findAll().stream()
-                .map(p -> new ProveedorDTOO(
+                .map(p -> new ProveedorDTOOutput(
                         p.getCodProveedor(),
                         p.getNombreProveedor(),
                         p.getDireccionProveedor(),

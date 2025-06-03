@@ -2,8 +2,7 @@ package com.stockistas.stockistas2025.Controller;
 
 import com.stockistas.stockistas2025.Dto.ArticuloProveedorResponseDTO;
 import com.stockistas.stockistas2025.Dto.ProveedorDTO;
-import com.stockistas.stockistas2025.Dto.ProveedorDTOO;
-import com.stockistas.stockistas2025.Entity.Articulo;
+import com.stockistas.stockistas2025.Dto.ProveedorDTOOutput;
 import com.stockistas.stockistas2025.Entity.Proveedor;
 import com.stockistas.stockistas2025.Service.ProveedorService;
 import jakarta.persistence.EntityNotFoundException;
@@ -47,7 +46,7 @@ public class ProveedorController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProveedorDTOO>> getAll() {
+    public ResponseEntity<List<ProveedorDTOOutput>> getAll() {
         return ResponseEntity.ok(proveedorService.getAll());
     }
 

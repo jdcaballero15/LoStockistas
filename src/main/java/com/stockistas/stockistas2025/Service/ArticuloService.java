@@ -25,9 +25,10 @@ public class ArticuloService {
     private final DetalleOrdenCompraRepository detalleOrdenCompraRepository;
 
     public Articulo crearArticulo(ArticuloDTO dto) {
+
         // Buscar proveedor
-        Proveedor proveedor = proveedorRepository.findById(dto.getProveedorId())
-                .orElseThrow(() -> new EntityNotFoundException("Proveedor con ID " + dto.getProveedorId() + " no encontrado"));
+        Proveedor proveedor = proveedorRepository.findById(dto.getProveedorPredeterminado().getCodProveedor())
+                .orElseThrow(() -> new EntityNotFoundException("Proveedor con ID " + dto.getProveedorPredeterminado().getCodProveedor() + " no encontrado"));
 
         // Calcular CGI inicial
         BigDecimal CGI = calcularCGI(dto);
@@ -60,10 +61,32 @@ public class ArticuloService {
                 .add(dto.getCostoAlmacenamiento());
     }
 
-    public List<Articulo> getAll() {
-        return articuloRepository.findAll();
+    public List<ArticuloDTO> getAll() {
+        return articuloRepository.findAll().stream().map(this::toDTO).toList();
     }
 
+    public ArticuloDTO toDTO(Articulo articulo) {
+        if (articulo == null) return null;
+
+        return ArticuloDTO.builder()
+                .codArticulo(articulo.getCodArticulo())
+                .nombreArt(articulo.getNombreArt())
+                .descripArt(articulo.getDescripArt())
+                .demandaAnual(articulo.getDemandaAnual())
+                .costoAlmacenamiento(articulo.getCostoAlmacenamiento())
+                .costoPedido(articulo.getCostoPedido())
+                .costoCompra(articulo.getCostoCompra())
+                .stockActual(articulo.getStockActual())
+                .CGI(articulo.getCGI())
+                .loteOptimo(articulo.getLoteOptimo())
+                .puntoPedido(articulo.getPuntoPedido())
+                .inventarioMax(articulo.getInventarioMax())
+                .stockSeguridadLF(articulo.getStockSeguridadLF())
+                .stockSeguridadIF(articulo.getStockSeguridadIF())
+                .modeloInventario(articulo.getModeloInventario())
+                .proveedorPredeterminado(articulo.getProveedorPredeterminado())
+                .build();
+    }
     public Articulo getById(Integer id) {
         return articuloRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Artículo no encontrado"));
