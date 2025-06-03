@@ -1,5 +1,6 @@
 package com.stockistas.stockistas2025.Entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,10 +24,12 @@ public class OrdenCompra {
 
     @ManyToOne
     @JoinColumn(name = "estado_oc_id")
+    @JsonManagedReference
     private EstadoOC estado;
 
     @ManyToOne
     @JoinColumn(name = "proveedor_id", nullable = false)
+    @JsonManagedReference
     private Proveedor proveedor;
 
     @OneToMany(mappedBy = "ordenCompra", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -2,6 +2,8 @@ package com.stockistas.stockistas2025.Controller;
 
 import com.stockistas.stockistas2025.Dto.ArticuloProveedorResponseDTO;
 import com.stockistas.stockistas2025.Dto.ProveedorDTO;
+import com.stockistas.stockistas2025.Dto.ProveedorDTOO;
+import com.stockistas.stockistas2025.Entity.Articulo;
 import com.stockistas.stockistas2025.Entity.Proveedor;
 import com.stockistas.stockistas2025.Service.ProveedorService;
 import jakarta.persistence.EntityNotFoundException;
@@ -15,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/proveedores")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class ProveedorController {
 
     private final ProveedorService proveedorService;
@@ -42,6 +45,12 @@ public class ProveedorController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("⛔ Error inesperado: " + e.getMessage());
         }
     }
+
+    @GetMapping
+    public ResponseEntity<List<ProveedorDTOO>> getAll() {
+        return ResponseEntity.ok(proveedorService.getAll());
+    }
+
 
     @GetMapping("/{id}/articulos")
     public ResponseEntity<?> listarArticulosDelProveedor(@PathVariable("id") Integer id) {

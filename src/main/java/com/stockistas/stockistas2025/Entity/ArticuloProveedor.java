@@ -1,5 +1,7 @@
 package com.stockistas.stockistas2025.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,12 +26,15 @@ public class ArticuloProveedor {
 
     @ManyToOne
     @JoinColumn(name = "articulo_id")
+    @JsonBackReference  // No serializa para evitar recursión
     private Articulo articulo;
 
     @ManyToOne
     @JoinColumn(name = "proveedor_id")
+    @JsonBackReference  // No serializa para evitar recursión
     private Proveedor proveedor;
 
     @OneToMany(mappedBy = "articuloProveedor", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonBackReference
     private List<DetalleOrdenCompra> detallesOC;
 }

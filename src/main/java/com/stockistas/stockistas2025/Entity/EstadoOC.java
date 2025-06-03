@@ -1,5 +1,6 @@
 package com.stockistas.stockistas2025.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,5 +19,6 @@ public class EstadoOC {
     private String nombreEstadoOC;
 
     @OneToMany(mappedBy = "estado")
+    @JsonBackReference
     private List<OrdenCompra> ordenes;
 }

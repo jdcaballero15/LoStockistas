@@ -1,5 +1,6 @@
 package com.stockistas.stockistas2025.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,6 +22,7 @@ public class DetalleOrdenCompra {
 
     @ManyToOne
     @JoinColumn(name = "orden_compra_id", nullable = false)
+    @JsonBackReference
     private OrdenCompra ordenCompra;
 
     @ManyToOne

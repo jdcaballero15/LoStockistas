@@ -1,5 +1,7 @@
 package com.stockistas.stockistas2025.Entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -37,16 +39,18 @@ public class Articulo {
 
     @ManyToOne
     @JoinColumn(name = "proveedor_id", nullable = false)
+    @JsonBackReference  // No serializa para evitar recursión
     private Proveedor proveedorPredeterminado;
 
     @OneToMany(mappedBy = "articulo", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<ArticuloProveedor> relacionesConProveedores;
 
     @OneToMany(mappedBy = "articulo", cascade = CascadeType.ALL)
+    @JsonBackReference
     private List<Venta> ventas;
 
     @Enumerated(EnumType.STRING) // Guarda como 'LOTEFIJO' o 'INTERVALOFIJO' en la DB
     @Column(nullable = false)
     private ModeloInventario modeloInventario;
 }
-
