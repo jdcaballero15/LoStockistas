@@ -26,15 +26,20 @@ public class VentaService {
      * Luego llama a la lógica de generación automática de OC si aplica.
      */
     public Venta registrarVenta(VentaDTO dto) {
-        Articulo articulo = articuloRepository.findById(2)
-                .orElseThrow(() -> new EntityNotFoundException("Artículo con ID 2 no encontrado"));
+        // Buscar el artículo por ID
+        Articulo articulo = articuloRepository.findById(dto.getCodArticulo())
+                .orElseThrow(() -> new EntityNotFoundException("Artículo con ID " + dto.getCodArticulo() + " no encontrado"));
 
+        // Verificar stock disponible
         int stockActual = articulo.getStockActual();
+        if (dto.getCantidadVendida() == null || dto.getCantidadVendida() <= 0) {
+            throw new IllegalArgumentException("La cantidad vendida debe ser mayor que cero.");
+        }
         if (dto.getCantidadVendida() > stockActual) {
             throw new IllegalArgumentException("Stock insuficiente para la venta");
         }
 
-        // Registrar venta
+        // Registrar la venta
         Venta venta = Venta.builder()
                 .articulo(articulo)
                 .fechaVenta(LocalDate.now().atStartOfDay())
@@ -43,11 +48,11 @@ public class VentaService {
 
         Venta ventaGuardada = ventaRepository.save(venta);
 
-        // Actualizar stock
+        // Actualizar el stock del artículo
         articulo.setStockActual(stockActual - dto.getCantidadVendida());
         articuloRepository.save(articulo);
 
-        // Verificar si corresponde generar OC automática
+        // Verificar si se debe generar una Orden de Compra automática
         ordenCompraService.generarOrdenCompraSiCorresponde(articulo.getCodArticulo());
 
         return ventaGuardada;
@@ -63,4 +68,5 @@ public class VentaService {
 
         return ventaRepository.findByArticulo(articulo);
     }
+
 }

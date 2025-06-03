@@ -1,6 +1,7 @@
 package com.stockistas.stockistas2025.Service;
 
 import com.stockistas.stockistas2025.Dto.ArticuloProveedorDTO;
+import com.stockistas.stockistas2025.Dto.ArticuloProveedorResponseDTO;
 import com.stockistas.stockistas2025.Dto.ProveedorDTO;
 import com.stockistas.stockistas2025.Entity.Articulo;
 import com.stockistas.stockistas2025.Entity.ArticuloProveedor;
@@ -25,9 +26,8 @@ public class ProveedorService {
     private final ArticuloProveedorRepository articuloProveedorRepository;
     private final OrdenCompraRepository ordenCompraRepository;
 
-    /**
-     * Alta de proveedor junto con sus artículos asociados.
-     */
+
+    // Alta de proveedor junto con sus artículos asociados.
     public Proveedor altaProveedor(ProveedorDTO dto) {
         if (dto.getArticulos() == null || dto.getArticulos().isEmpty()) {
             throw new IllegalArgumentException("Debe asociarse al menos un artículo al proveedor.");
@@ -59,9 +59,8 @@ public class ProveedorService {
         return proveedorGuardado;
     }
 
-    /**
-     * Baja lógica del proveedor con validaciones.
-     */
+
+    // Baja lógica del proveedor con validaciones.
     public void bajaProveedor(Integer codProveedor) {
         Proveedor proveedor = proveedorRepository.findById(codProveedor)
                 .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado."));
@@ -80,21 +79,23 @@ public class ProveedorService {
         proveedorRepository.delete(proveedor);
     }
 
-    /**
-     * Listado de artículos por proveedor con indicador si es predeterminado.
-     */
-    public List<String> listarArticulosPorProveedor(Integer codProveedor) {
+
+    public List<ArticuloProveedorResponseDTO> listarArticulosPorProveedor(Integer codProveedor) {
         Proveedor proveedor = proveedorRepository.findById(codProveedor)
                 .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado."));
 
         List<ArticuloProveedor> relaciones = articuloProveedorRepository.findByProveedor(proveedor);
 
-        return relaciones.stream().map(relacion -> {
-            Articulo articulo = relacion.getArticulo();
-            boolean esPredeterminado = proveedor.equals(articulo.getProveedorPredeterminado());
-            return "Artículo: " + articulo.getNombreArt() +
-                    " (ID: " + articulo.getCodArticulo() + ") - Predeterminado: " +
-                    (esPredeterminado ? "Sí" : "No");
-        }).collect(Collectors.toList());
+        return relaciones.stream()
+                .map(relacion -> {
+                    Articulo articulo = relacion.getArticulo();
+                    boolean esPredeterminado = proveedor.equals(articulo.getProveedorPredeterminado());
+                    return new ArticuloProveedorResponseDTO(
+                            articulo.getCodArticulo(),
+                            articulo.getNombreArt(),
+                            esPredeterminado
+                    );
+                })
+                .collect(Collectors.toList());
     }
 }

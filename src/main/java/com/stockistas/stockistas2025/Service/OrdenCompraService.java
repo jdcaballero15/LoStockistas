@@ -84,6 +84,15 @@ public class OrdenCompraService {
         return Optional.of(guardada);
     }
 
+    public List<OrdenCompra> getAll() {
+        return ordenCompraRepository.findAll();
+    }
+
+    public OrdenCompra getById(Integer id) {
+        return ordenCompraRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Orden de compra con ID " + id + " no encontrada"));
+    }
+
     private int calcularFaltanteSegunModelo(Articulo articulo) {
         int stockActual = articulo.getStockActual();
         ModeloInventario modelo = articulo.getModeloInventario();

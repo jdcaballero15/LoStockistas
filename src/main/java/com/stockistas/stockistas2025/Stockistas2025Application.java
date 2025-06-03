@@ -78,8 +78,8 @@ public class Stockistas2025Application {
 							.build()
 			);*/
 
-			Articulo prueba1 = articuloRepo.findById(2)
-					.orElseThrow(() -> new EntityNotFoundException("Artículo con ID 2 no encontrado"));
+			/*Articulo prueba1 = articuloRepo.findById(2)
+					.orElseThrow(() -> new EntityNotFoundException("Artículo con ID 2 no encontrado"));*/
 
 			/*// Ejecutar metodo de generación automática
 			Optional<OrdenCompra> ocGenerada = ordenCompraService.generarOrdenCompraSiCorresponde(prueba1.getCodArticulo());
@@ -90,13 +90,13 @@ public class Stockistas2025Application {
 				System.out.println("⚠ No se generó ninguna Orden de Compra.");
 			}*/
 
-			Venta ventaPrueba = ventaRepo.save(
+			/*Venta ventaPrueba = ventaRepo.save(
 					Venta.builder()
 							.fechaVenta(LocalDateTime.now())
 							.cantProducto(10)
 							.articulo(prueba1)
 							.build()
-			);
+			);*/
 
 			//ventaService.registrarVenta(ventaPrueba);
 

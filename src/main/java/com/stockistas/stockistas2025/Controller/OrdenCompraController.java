@@ -7,41 +7,42 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/ordenes")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*")
 public class OrdenCompraController {
 
     private final OrdenCompraService ordenCompraService;
 
-    @PostMapping("/generar")
-    public ResponseEntity<OrdenCompra> generarOC(@RequestParam Integer codArticulo) {
-        Optional<OrdenCompra> oc = ordenCompraService.generarOrdenCompraSiCorresponde(codArticulo);
-        return oc.map(ResponseEntity::ok).orElse(ResponseEntity.noContent().build());
+    @GetMapping
+    public ResponseEntity<List<OrdenCompra>> getAll() {
+        return ResponseEntity.ok(ordenCompraService.getAll());
     }
 
-    @PostMapping("/manual")
-    public ResponseEntity<OrdenCompra> crearManual(@RequestBody OrdenCompraDTO dto) {
+    @GetMapping("/{id}")
+    public ResponseEntity<OrdenCompra> getById(@PathVariable Integer id) {
+        return ResponseEntity.ok(ordenCompraService.getById(id));
+    }
+
+    // TENEMOS QUE HACERLO EN EL FRONT
+    @PostMapping
+    public ResponseEntity<OrdenCompra> create(@RequestBody OrdenCompraDTO dto) {
         return ResponseEntity.ok(ordenCompraService.crearOrdenCompraManual(dto));
     }
 
-    @PutMapping("/{id}/cancelar")
+    @PutMapping("/{id}/finalizar")
+    public ResponseEntity<String> finalizar(@PathVariable Integer id) {
+        ordenCompraService.finalizarOrdenCompra(id);
+        return ResponseEntity.ok("Orden de compra finalizada exitosamente");
+    }
+
+    @DeleteMapping("/{id}/cancelar")
     public ResponseEntity<Void> cancelar(@PathVariable Integer id) {
         ordenCompraService.cancelarOrdenCompra(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{id}/enviar")
-    public ResponseEntity<Void> enviar(@PathVariable Integer id) {
-        ordenCompraService.enviarOrdenCompra(id);
-        return ResponseEntity.ok().build();
-    }
-
-    @PutMapping("/{id}/finalizar")
-    public ResponseEntity<Void> finalizar(@PathVariable Integer id) {
-        ordenCompraService.finalizarOrdenCompra(id);
-        return ResponseEntity.ok().build();
-    }
 }
