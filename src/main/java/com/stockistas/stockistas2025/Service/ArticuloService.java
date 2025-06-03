@@ -5,6 +5,7 @@ import com.stockistas.stockistas2025.Entity.Articulo;
 import com.stockistas.stockistas2025.Entity.Proveedor;
 import com.stockistas.stockistas2025.Repository.ArticuloRepository;
 import com.stockistas.stockistas2025.Repository.ProveedorRepository;
+import com.stockistas.stockistas2025.Repository.DetalleOrdenCompraRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ public class ArticuloService {
 
     private final ArticuloRepository articuloRepository;
     private final ProveedorRepository proveedorRepository;
+    private final DetalleOrdenCompraRepository detalleOrdenCompraRepository;
 
     public Articulo crearArticulo(ArticuloDTO dto) {
         // Buscar proveedor
