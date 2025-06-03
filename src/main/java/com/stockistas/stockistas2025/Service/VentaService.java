@@ -25,7 +25,7 @@ public class VentaService {
      * Verifica que no se venda más stock del disponible.
      * Luego llama a la lógica de generación automática de OC si aplica.
      */
-    public void registrarVenta(VentaDTO dto) {
+    public Venta registrarVenta(VentaDTO dto) {
         Articulo articulo = articuloRepository.findById(2)
                 .orElseThrow(() -> new EntityNotFoundException("Artículo con ID 2 no encontrado"));
 
@@ -41,7 +41,7 @@ public class VentaService {
                 .cantProducto(dto.getCantidadVendida())
                 .build();
 
-        ventaRepository.save(venta);
+        Venta ventaGuardada = ventaRepository.save(venta);
 
         // Actualizar stock
         articulo.setStockActual(stockActual - dto.getCantidadVendida());
@@ -49,7 +49,10 @@ public class VentaService {
 
         // Verificar si corresponde generar OC automática
         ordenCompraService.generarOrdenCompraSiCorresponde(articulo.getCodArticulo());
+
+        return ventaGuardada;
     }
+
 
     /**
      * Lista todas las ventas realizadas para un artículo dado.
