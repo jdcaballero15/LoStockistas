@@ -42,9 +42,9 @@ public class Articulo {
     @JsonBackReference  // No serializa para evitar recursión
     private Proveedor proveedorPredeterminado;
 
-    //@OneToMany(mappedBy = "articulo", cascade = CascadeType.ALL)
-    //@JsonManagedReference
-    //private List<ArticuloProveedor> relacionesConProveedores;
+    @OneToMany(mappedBy = "articulo", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private List<ArticuloProveedor> relacionesConProveedores;
 
     //@OneToMany(mappedBy = "articulo", cascade = CascadeType.ALL)
     //@JsonBackReference

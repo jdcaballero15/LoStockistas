@@ -1,7 +1,9 @@
 package com.stockistas.stockistas2025.Controller;
 
 import com.stockistas.stockistas2025.Dto.OrdenCompraDTO;
+import com.stockistas.stockistas2025.Entity.EstadoOC;
 import com.stockistas.stockistas2025.Entity.OrdenCompra;
+import com.stockistas.stockistas2025.Service.EstadoOCService;
 import com.stockistas.stockistas2025.Service.OrdenCompraService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,7 @@ import java.util.List;
 public class OrdenCompraController {
 
     private final OrdenCompraService ordenCompraService;
+    private final EstadoOCService estadoOCService;
 
     @GetMapping
     public ResponseEntity<List<OrdenCompra>> getAll() {
@@ -25,6 +28,11 @@ public class OrdenCompraController {
     @GetMapping("/{id}")
     public ResponseEntity<OrdenCompra> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(ordenCompraService.getById(id));
+    }
+
+    @GetMapping("/{estados-oc}")
+    public ResponseEntity<List<EstadoOC>>estadosOC(){
+        return ResponseEntity.ok(estadoOCService.getAll());
     }
 
     // TENEMOS QUE HACERLO EN EL FRONT
@@ -44,5 +52,6 @@ public class OrdenCompraController {
         ordenCompraService.cancelarOrdenCompra(id);
         return ResponseEntity.noContent().build();
     }
+
 
 }

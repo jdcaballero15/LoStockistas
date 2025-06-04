@@ -33,8 +33,8 @@ public class ArticuloController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Articulo> update(@PathVariable Integer id, @RequestBody Articulo articulo) {
-        return ResponseEntity.ok(articuloService.update(id, articulo));
+    public ResponseEntity<Articulo> update(@PathVariable Integer id, @RequestBody ArticuloDTO dto) {
+        return ResponseEntity.ok(articuloService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")

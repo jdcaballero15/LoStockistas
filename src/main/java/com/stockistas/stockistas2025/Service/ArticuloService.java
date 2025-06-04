@@ -46,8 +46,13 @@ public class ArticuloService {
                 .CGI(CGI)
                 .modeloInventario(dto.getModeloInventario())
                 .proveedorPredeterminado(proveedor)
-                .relacionesConProveedores(new ArrayList<>())
-                .ventas(new ArrayList<>())
+                .loteOptimo(dto.getLoteOptimo())
+                .inventarioMax(dto.getInventarioMax())
+                .puntoPedido(dto.getPuntoPedido())
+                .stockSeguridadIF(dto.getStockSeguridadIF())
+                .stockSeguridadLF(dto.getStockSeguridadLF())
+                //.relacionesConProveedores(new ArrayList<>())
+                //.ventas(new ArrayList<>())
                 .build();
 
         return articuloRepository.save(articulo);
@@ -92,19 +97,24 @@ public class ArticuloService {
                 .orElseThrow(() -> new EntityNotFoundException("Artículo no encontrado"));
     }
 
-    public Articulo update(Integer id, Articulo articulo) {
+    public Articulo update(Integer id, ArticuloDTO dto) {
         Articulo existente = getById(id);
-        existente.setNombreArt(articulo.getNombreArt());
-        existente.setDescripArt(articulo.getDescripArt());
-        existente.setDemandaAnual(articulo.getDemandaAnual());
-        existente.setCostoAlmacenamiento(articulo.getCostoAlmacenamiento());
-        existente.setCostoPedido(articulo.getCostoPedido());
-        existente.setCostoCompra(articulo.getCostoCompra());
-        existente.setStockActual(articulo.getStockActual());
-        existente.setProveedorPredeterminado(articulo.getProveedorPredeterminado());
-        existente.setModeloInventario(articulo.getModeloInventario());
+        existente.setNombreArt(dto.getNombreArt());
+        existente.setDescripArt(dto.getDescripArt());
+        existente.setDemandaAnual(dto.getDemandaAnual());
+        existente.setCostoAlmacenamiento(dto.getCostoAlmacenamiento());
+        existente.setCostoPedido(dto.getCostoPedido());
+        existente.setCostoCompra(dto.getCostoCompra());
+        existente.setStockActual(dto.getStockActual());
+        existente.setProveedorPredeterminado(dto.getProveedorPredeterminado());
+        existente.setModeloInventario(dto.getModeloInventario());
+
+        // Recalcular campos si corresponde (como en crearArticulo)
+        existente.setCGI(calcularCGI(dto));
+
         return articuloRepository.save(existente);
     }
+
 
     public void delete(Integer codArticulo) {
         Articulo articulo = articuloRepository.findById(codArticulo)
