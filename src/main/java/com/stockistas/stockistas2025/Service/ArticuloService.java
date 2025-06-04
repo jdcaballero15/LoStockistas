@@ -26,7 +26,7 @@ public class ArticuloService {
 
     public Articulo crearArticulo(ArticuloDTO dto) {
 
-        // Buscar proveedor
+        // Buscar proveedor asociado al ProveedorPredeterminado que nos seleccionó en el front
         Proveedor proveedor = proveedorRepository.findById(dto.getProveedorPredeterminado().getCodProveedor())
                 .orElseThrow(() -> new EntityNotFoundException("Proveedor con ID " + dto.getProveedorPredeterminado().getCodProveedor() + " no encontrado"));
 
@@ -51,13 +51,12 @@ public class ArticuloService {
                 .puntoPedido(dto.getPuntoPedido())
                 .stockSeguridadIF(dto.getStockSeguridadIF())
                 .stockSeguridadLF(dto.getStockSeguridadLF())
-                //.relacionesConProveedores(new ArrayList<>())
-                //.ventas(new ArrayList<>())
                 .build();
 
         return articuloRepository.save(articulo);
     }
 
+    //Metodo para calcular el CGI
     private BigDecimal calcularCGI(ArticuloDTO dto) {
         // Fórmula: CGI = (Demanda * CostoCompra) + CostoPedido + CostoAlmacenamiento
         BigDecimal demanda = BigDecimal.valueOf(dto.getDemandaAnual());
@@ -66,10 +65,12 @@ public class ArticuloService {
                 .add(dto.getCostoAlmacenamiento());
     }
 
+    //Lista todos los articulos que aun no se han dado de baja y los devuelve como un DTO con la informacion necesaria
     public List<ArticuloDTO> getAll() {
-        return articuloRepository.findAll().stream().map(this::toDTO).toList();
+        return articuloRepository.findAll().stream().filter(a->a.getFechaHoraBajaArticulo()==null).map(this::toDTO).toList();
     }
 
+    //Conversión del articulo encontrado a DTO para devolverlo al front
     public ArticuloDTO toDTO(Articulo articulo) {
         if (articulo == null) return null;
 
@@ -92,11 +93,14 @@ public class ArticuloService {
                 .proveedorPredeterminado(articulo.getProveedorPredeterminado())
                 .build();
     }
+
+    //Buscamos articulos por codArticulo
     public Articulo getById(Integer id) {
         return articuloRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Artículo no encontrado"));
     }
 
+    //Nos llega la informacion modificada del articulo en un DTO y seteamos la nueva información
     public Articulo update(Integer id, ArticuloDTO dto) {
         Articulo existente = getById(id);
         existente.setNombreArt(dto.getNombreArt());
@@ -109,34 +113,35 @@ public class ArticuloService {
         existente.setProveedorPredeterminado(dto.getProveedorPredeterminado());
         existente.setModeloInventario(dto.getModeloInventario());
 
-        // Recalcular campos si corresponde (como en crearArticulo)
+        // Recalculamos el CGI
         existente.setCGI(calcularCGI(dto));
 
         return articuloRepository.save(existente);
     }
 
-
+    //Eliminamos un articulo siguiendo ciertas condiciones
     public void delete(Integer codArticulo) {
+
         Articulo articulo = articuloRepository.findById(codArticulo)
                 .orElseThrow(() -> new EntityNotFoundException("Artículo con ID " + codArticulo + " no encontrado"));
 
-        // 1. Verificar si tiene stock
+        //Verificamos si tiene stock
         if (articulo.getStockActual() != null && articulo.getStockActual() > 0) {
             throw new IllegalStateException("No se puede dar de baja: el artículo tiene unidades en stock.");
         }
 
-        // 2. Verificar si tiene órdenes de compra en estado pendiente o enviada
+        //Verificamos si tiene órdenes de compra en estado pendiente o enviada
         boolean tieneOrdenesRelacionadas = articulo.getRelacionesConProveedores().stream()
                 .anyMatch(ap -> detalleOrdenCompraRepository.existsByArticuloProveedorAndOrdenCompra_Estado_CodEstadoOCIn(
                         ap,
-                        List.of(1, 2) // Suponiendo que 1 = PENDIENTE, 2 = ENVIADA
+                        List.of(1, 2) //Los estados se determinan por su codigo: 1 = PENDIENTE, 2 = ENVIADA
                 ));
 
         if (tieneOrdenesRelacionadas) {
             throw new IllegalStateException("No se puede dar de baja: el artículo tiene órdenes de compra pendientes o enviadas.");
         }
 
-        // 3. Dar de baja (baja lógica)
+        //Se le da baja logica al articulo
         articulo.setFechaHoraBajaArticulo(LocalDateTime.now());
         articuloRepository.save(articulo);
     }
