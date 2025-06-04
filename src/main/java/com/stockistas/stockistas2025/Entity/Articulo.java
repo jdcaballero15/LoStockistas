@@ -42,13 +42,13 @@ public class Articulo {
     @JsonBackReference  // No serializa para evitar recursión
     private Proveedor proveedorPredeterminado;
 
-    @OneToMany(mappedBy = "articulo", cascade = CascadeType.ALL)
-    @JsonManagedReference
-    private List<ArticuloProveedor> relacionesConProveedores;
+    //@OneToMany(mappedBy = "articulo", cascade = CascadeType.ALL)
+    //@JsonManagedReference
+    //private List<ArticuloProveedor> relacionesConProveedores;
 
-    @OneToMany(mappedBy = "articulo", cascade = CascadeType.ALL)
-    @JsonBackReference
-    private List<Venta> ventas;
+    //@OneToMany(mappedBy = "articulo", cascade = CascadeType.ALL)
+    //@JsonBackReference
+    //private List<Venta> ventas;
 
     @Enumerated(EnumType.STRING) // Guarda como 'LOTEFIJO' o 'INTERVALOFIJO' en la DB
     @Column(nullable = false)

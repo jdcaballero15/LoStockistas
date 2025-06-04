@@ -18,7 +18,7 @@ public class EstadoOC {
     private Integer codEstadoOC;
     private String nombreEstadoOC;
 
-    @OneToMany(mappedBy = "estado")
-    @JsonBackReference
-    private List<OrdenCompra> ordenes;
+    //@OneToMany(mappedBy = "estado")
+    //@JsonBackReference
+    //private List<OrdenCompra> ordenes;
 }

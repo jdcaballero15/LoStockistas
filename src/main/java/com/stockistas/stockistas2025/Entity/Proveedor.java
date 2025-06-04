@@ -26,12 +26,12 @@ public class Proveedor {
     private String emailProveedor;
     private LocalDateTime fechaHoraBajaProveedor;
 
-    @OneToMany(mappedBy = "proveedor", cascade = CascadeType.ALL)
-    @JsonBackReference  // Aquí serializa la lista normalmente
-    private List<ArticuloProveedor> relacionesConArticulos;
+    //@OneToMany(mappedBy = "proveedor", cascade = CascadeType.ALL)
+    //@JsonBackReference  // Aquí serializa la lista normalmente
+    //private List<ArticuloProveedor> relacionesConArticulos;
 
-    @OneToMany(mappedBy = "proveedor")
-    @JsonBackReference
-    private List<OrdenCompra> ordenes;
+    //@OneToMany(mappedBy = "proveedor")
+    //@JsonBackReference
+    //private List<OrdenCompra> ordenes;
 
 }
