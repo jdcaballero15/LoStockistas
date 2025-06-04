@@ -12,4 +12,6 @@ public interface OrdenCompraRepository extends JpaRepository<OrdenCompra, Intege
 
     boolean existsByProveedorAndEstado_CodEstadoOCIn(Proveedor proveedor, List<Integer> codigosEstado);
 
+    List<OrdenCompra> findByDetalles_ArticuloProveedor_Articulo_CodArticulo(Integer codArticulo);
+
 }

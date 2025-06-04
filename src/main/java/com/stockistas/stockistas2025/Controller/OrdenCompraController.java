@@ -30,6 +30,18 @@ public class OrdenCompraController {
         return ResponseEntity.ok(ordenCompraService.getById(id));
     }
 
+    @GetMapping("/articulo/{codArticulo}")
+    public ResponseEntity<List<OrdenCompra>> getOrdenesCompraByArticulo(@PathVariable Integer codArticulo) {
+        List<OrdenCompra> ordenes = ordenCompraService.getOrdenesCompraByArticulo(codArticulo);
+
+        if (ordenes.isEmpty()) {
+            // Si no se encuentran órdenes, devuelve un estado 204 No Content.
+            // Esto es una buena práctica cuando la respuesta es un "no hay datos".
+            return ResponseEntity.noContent().build();
+        }
+        // Si se encuentran órdenes, devuelve un estado 200 OK y la lista de órdenes.
+        return ResponseEntity.ok(ordenes);
+    }
 
     // TENEMOS QUE HACERLO EN EL FRONT
     @PostMapping
