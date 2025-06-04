@@ -18,7 +18,7 @@ import java.util.List;
 public class OrdenCompraController {
 
     private final OrdenCompraService ordenCompraService;
-    private final EstadoOCService estadoOCService;
+
 
     @GetMapping
     public ResponseEntity<List<OrdenCompra>> getAll() {
@@ -30,10 +30,6 @@ public class OrdenCompraController {
         return ResponseEntity.ok(ordenCompraService.getById(id));
     }
 
-    @GetMapping("/{estados-oc}")
-    public ResponseEntity<List<EstadoOC>>estadosOC(){
-        return ResponseEntity.ok(estadoOCService.getAll());
-    }
 
     // TENEMOS QUE HACERLO EN EL FRONT
     @PostMapping
