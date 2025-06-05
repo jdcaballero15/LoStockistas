@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -27,6 +28,7 @@ public class VentaService {
      */
     public Venta registrarVenta(VentaDTO dto) {
         // Buscar el artículo por ID
+
         Articulo articulo = articuloRepository.findById(dto.getCodArticulo())
                 .orElseThrow(() -> new EntityNotFoundException("Artículo con ID " + dto.getCodArticulo() + " no encontrado"));
 
@@ -42,7 +44,7 @@ public class VentaService {
         // Registrar la venta
         Venta venta = Venta.builder()
                 .articulo(articulo)
-                .fechaVenta(LocalDate.now().atStartOfDay())
+                .fechaVenta(LocalDateTime.now())
                 .cantProducto(dto.getCantidadVendida())
                 .build();
 
@@ -52,7 +54,7 @@ public class VentaService {
         articulo.setStockActual(stockActual - dto.getCantidadVendida());
         articuloRepository.save(articulo);
 
-        // Verificar si se debe generar una Orden de Compra automática
+        // Verificar si sedebe generar una Orden de Compra automática
         ordenCompraService.generarOrdenCompraSiCorresponde(articulo.getCodArticulo());
 
         return ventaGuardada;

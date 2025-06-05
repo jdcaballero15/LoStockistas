@@ -30,7 +30,6 @@ public class OrdenCompraService {
         Articulo articulo = articuloRepository.findById(codArticulo)
                 .orElseThrow(() -> new EntityNotFoundException("Artículo no encontrado"));
 
-        System.out.println("SE ENCONTRÓ EL ARTICULO");
         // Obtener relación Artículo-Proveedor predeterminado
         ArticuloProveedor relacion = articuloProveedorRepository
                 .findByArticuloAndProveedor(articulo, articulo.getProveedorPredeterminado())
@@ -48,7 +47,6 @@ public class OrdenCompraService {
         // Calcular faltante
         int cantidadFaltante = calcularFaltanteSegunModelo(articulo);
         if (cantidadFaltante <= 0) return Optional.empty();
-        System.out.println("SI TENEMOS CANTIDAD FALTANTE");
 
         // Obtener estado PENDIENTE (código 1)
         EstadoOC estadoPendiente = estadoOCRepository.findById(1)
@@ -97,7 +95,7 @@ public class OrdenCompraService {
         return ordenCompraRepository.findByDetalles_ArticuloProveedor_Articulo_CodArticulo(codArticulo);
     }
 
-    private int calcularFaltanteSegunModelo(Articulo articulo) {
+    public int calcularFaltanteSegunModelo(Articulo articulo) {
         int stockActual = articulo.getStockActual();
         ModeloInventario modelo = articulo.getModeloInventario();
 
