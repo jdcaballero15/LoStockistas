@@ -196,6 +196,10 @@ public class OrdenCompraService {
         OrdenCompra oc = ordenCompraRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Orden de Compra no encontrada"));
 
+    if (oc.getEstado().getCodEstadoOC() != 1)
+            throw new IllegalStateException("Solo se pueden enviar órdenes en estado PENDIENTE");
+
+
         EstadoOC estadoEnviada = estadoOCRepository.findById(2)
                 .orElseThrow(() -> new EntityNotFoundException("Estado ENVIADA no encontrado"));
 
@@ -206,25 +210,17 @@ public class OrdenCompraService {
     public void finalizarOrdenCompra(Integer id) {
         OrdenCompra oc = ordenCompraRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Orden de Compra no encontrada"));
-
+        if (oc.getEstado().getCodEstadoOC() != 2)
+            throw new IllegalStateException("Solo se pueden enviar órdenes en estado ENVIADO");
         EstadoOC estadoFinalizada = estadoOCRepository.findById(4)
                 .orElseThrow(() -> new EntityNotFoundException("Estado FINALIZADA no encontrado"));
 
         oc.setEstado(estadoFinalizada);
         ordenCompraRepository.save(oc);
-
-        // Sumar artículos al inventario
         for (DetalleOrdenCompra detalle : oc.getDetalles()) {
-            Articulo articulo = detalle.getArticuloProveedor().getArticulo();
-            articulo.setStockActual(articulo.getStockActual() + 1);
-            articuloRepository.save(articulo);
-
-            // Verificar si sigue bajo punto de pedido
-            if (articulo.getModeloInventario() == ModeloInventario.LOTEFIJO
-                    && articulo.getStockActual() <= articulo.getPuntoPedido()) {
-                System.out.println("⚠ Artículo " + articulo.getDescripArt() + " sigue bajo punto de pedido.");
-            }
+            detalle.getArticuloProveedor().getArticulo().setStockActual(detalle.getArticuloProveedor().getArticulo().getStockActual() + oc.getCantArt());
+            articuloRepository.save(detalle.getArticuloProveedor().getArticulo());
         }
     }
-
 }
+
