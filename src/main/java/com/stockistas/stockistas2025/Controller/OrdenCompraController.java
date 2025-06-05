@@ -61,5 +61,11 @@ public class OrdenCompraController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/{id}/enviar")
+    public ResponseEntity<String> enviar(@PathVariable Integer id) {
+        ordenCompraService.enviarOrdenCompra(id);
+        return ResponseEntity.ok("Orden de compra enviada exitosamente");
+    }
+
 
 }
