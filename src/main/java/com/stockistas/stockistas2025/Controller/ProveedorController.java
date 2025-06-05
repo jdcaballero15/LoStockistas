@@ -47,6 +47,7 @@ public class ProveedorController {
 
     @GetMapping
     public ResponseEntity<List<ProveedorDTOOutput>> getAll() {
+
         return ResponseEntity.ok(proveedorService.getAll());
     }
 

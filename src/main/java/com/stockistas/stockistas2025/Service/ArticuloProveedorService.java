@@ -41,4 +41,18 @@ public class ArticuloProveedorService {
         return articuloProveedorRepo.findAll();
     }
 
+
+    public void eliminarRelacion(Integer codProveedor, Integer codArticulo) {
+        Articulo articulo = articuloRepo.findById(codArticulo)
+                .orElseThrow(() -> new IllegalArgumentException("Artículo no encontrado"));
+
+        Proveedor proveedor = proveedorRepo.findById(codProveedor)
+                .orElseThrow(() -> new IllegalArgumentException("Proveedor no encontrado"));
+
+        ArticuloProveedor relacion = articuloProveedorRepo.findByArticuloAndProveedor(articulo, proveedor)
+                .orElseThrow(() -> new IllegalArgumentException("Relación no encontrada"));
+
+        articuloProveedorRepo.delete(relacion);
+    }
+
 }

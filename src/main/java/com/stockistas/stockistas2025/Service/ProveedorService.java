@@ -15,6 +15,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,6 +39,7 @@ public class ProveedorService {
                 .nombreProveedor(dto.getNombre())
                 .emailProveedor(dto.getCorreo())
                 .telefonoProveedor(dto.getTelefono())
+                .direccionProveedor(dto.getDireccion())
                 .build();
 
         Proveedor proveedorGuardado = proveedorRepository.save(proveedor);
@@ -76,8 +78,8 @@ public class ProveedorService {
         if (tieneOCActiva) {
             throw new IllegalStateException("No se puede eliminar: proveedor tiene órdenes de compra pendientes o enviadas.");
         }
-
-        proveedorRepository.delete(proveedor);
+        proveedor.setFechaHoraBajaProveedor(LocalDateTime.now());
+        proveedorRepository.save(proveedor);
     }
 
 
@@ -101,6 +103,7 @@ public class ProveedorService {
     }
     public List<ProveedorDTOOutput> getAll() {
         return proveedorRepository.findAll().stream()
+                .filter(p -> p.getFechaHoraBajaProveedor() == null)
                 .map(p -> new ProveedorDTOOutput(
                         p.getCodProveedor(),
                         p.getNombreProveedor(),
@@ -109,4 +112,5 @@ public class ProveedorService {
                         p.getEmailProveedor()))
                 .collect(Collectors.toList());
     }
+
 }

@@ -8,6 +8,7 @@ import java.util.List;
 public class ProveedorDTO {
     private String nombre;
     private String correo;
+    private String direccion;
     private String telefono;
     private List<ArticuloProveedorDTO> articulos;
 }

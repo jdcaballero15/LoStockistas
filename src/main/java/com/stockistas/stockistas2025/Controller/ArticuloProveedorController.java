@@ -26,6 +26,17 @@ public class ArticuloProveedorController {
         return ResponseEntity.ok(ap);
     }
 
+    @DeleteMapping("/{codProveedor}/{codArticulo}")
+    public ResponseEntity<Void> eliminarRelacion(
+            @PathVariable Integer codProveedor,
+            @PathVariable Integer codArticulo
+    ) {
+        service.eliminarRelacion(codProveedor, codArticulo);
+        return ResponseEntity.ok(null);
+    }
+
+
+
     @GetMapping
     public ResponseEntity<List<ArticuloProveedor>> obtenerTodos() {
         return ResponseEntity.ok(service.obtenerTodos());
