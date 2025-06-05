@@ -30,6 +30,27 @@ public class Stockistas2025Application {
 								  VentaService ventaService) {
 		return args -> {
 			System.out.println("Se esta ejecutando Stockistas");
+
+			// Crear los estados
+			/*EstadoOC enviada = EstadoOC.builder()
+					.codEstadoOC(2)
+					.nombreEstadoOC("ENVIADA")
+					.build();
+
+			EstadoOC cancelada = EstadoOC.builder()
+					.codEstadoOC(3)
+					.nombreEstadoOC("CANCELADA")
+					.build();
+
+			EstadoOC finalizada = EstadoOC.builder()
+					.codEstadoOC(4)
+					.nombreEstadoOC("FINALIZADA")
+					.build();
+
+			// Guardar en la base de datos
+			estadoOCRepo.save(enviada);
+			estadoOCRepo.save(cancelada);
+			estadoOCRepo.save(finalizada);*/
 		};
 		};
 	}
