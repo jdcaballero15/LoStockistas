@@ -4,6 +4,7 @@ import com.stockistas.stockistas2025.Dto.ArticuloDTO;
 import com.stockistas.stockistas2025.Entity.Articulo;
 import com.stockistas.stockistas2025.Entity.Proveedor;
 import com.stockistas.stockistas2025.Repository.ArticuloRepository;
+import com.stockistas.stockistas2025.Repository.OrdenCompraRepository;
 import com.stockistas.stockistas2025.Repository.ProveedorRepository;
 import com.stockistas.stockistas2025.Repository.DetalleOrdenCompraRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -22,7 +23,7 @@ public class ArticuloService {
 
     private final ArticuloRepository articuloRepository;
     private final ProveedorRepository proveedorRepository;
-    private final DetalleOrdenCompraRepository detalleOrdenCompraRepository;
+    private final OrdenCompraRepository ordenCompraRepository;
 
     public Articulo crearArticulo(ArticuloDTO dto) {
 
@@ -132,9 +133,9 @@ public class ArticuloService {
 
         //Verificamos si tiene órdenes de compra en estado pendiente o enviada
         boolean tieneOrdenesRelacionadas = articulo.getRelacionesConProveedores().stream()
-                .anyMatch(ap -> detalleOrdenCompraRepository.existsByArticuloProveedorAndOrdenCompra_Estado_CodEstadoOCIn(
+                .anyMatch(ap -> ordenCompraRepository.existsByDetalles_ArticuloProveedorAndEstado_CodEstadoOCIn(
                         ap,
-                        List.of(1, 2) //Los estados se determinan por su codigo: 1 = PENDIENTE, 2 = ENVIADA
+                        List.of(1, 2) // Estados PENDIENTE o ENVIADA
                 ));
 
         if (tieneOrdenesRelacionadas) {

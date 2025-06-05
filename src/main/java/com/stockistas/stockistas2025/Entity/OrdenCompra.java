@@ -32,7 +32,8 @@ public class OrdenCompra {
     @JsonManagedReference
     private Proveedor proveedor;
 
-    @OneToMany(mappedBy = "ordenCompra", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DetalleOrdenCompra>detalles;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "orden_compra_id") // FK en la tabla detalle_orden_compra
+    private List<DetalleOrdenCompra> detalles;
 }
 

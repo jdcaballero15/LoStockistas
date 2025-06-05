@@ -30,6 +30,8 @@ public class OrdenCompraService {
         Articulo articulo = articuloRepository.findById(codArticulo)
                 .orElseThrow(() -> new EntityNotFoundException("Artículo no encontrado"));
 
+        System.out.println("ENCONTRO A:"+articulo.getNombreArt());
+        System.out.println("SU PROVEEDOR PRED ES: "+articulo.getProveedorPredeterminado().getCodProveedor());
         // Obtener relación Artículo-Proveedor predeterminado
         ArticuloProveedor relacion = articuloProveedorRepository
                 .findByArticuloAndProveedor(articulo, articulo.getProveedorPredeterminado())
@@ -38,11 +40,15 @@ public class OrdenCompraService {
 
 
         // Verificar si ya existe una OC con ese Articulo en estado Pendiente (1) o Enviada (2)
-        boolean existeOrdenEnProceso = detalleOrdenCompraRepository.existsByArticuloProveedorAndOrdenCompra_Estado_CodEstadoOCIn(
-                relacion, List.of(1, 2));
+        List<OrdenCompra> ordenesRelacionadas = ordenCompraRepository
+                .findByDetalles_ArticuloProveedor_Articulo_CodArticuloAndEstado_CodEstadoOCIn(
+                        codArticulo, List.of(1, 2));
 
-        if (existeOrdenEnProceso) return Optional.empty();
-        System.out.println("NO EXISTE ORDEN EN PROCESO");
+        if (!ordenesRelacionadas.isEmpty()) {
+            System.out.println("YA EXISTE ORDEN EN PROCESO PARA ESTE ARTÍCULO");
+            return Optional.empty();
+        }
+        System.out.println("NO EXISTE ORDEN EN PROCESO PARA ESTE ARTÍCULO");
 
         // Calcular faltante
         int cantidadFaltante = calcularFaltanteSegunModelo(articulo);
@@ -59,24 +65,24 @@ public class OrdenCompraService {
                 .cantArt(cantidadFaltante)
                 .build();
 
-        // Calcular subtotales
-        BigDecimal subtotalUnitario = relacion.getPrecioUnitario().add(relacion.getCargosPedido());
-
-        // Crear detalles, uno por unidad faltante
+        // Crear un detalle por cada relación ArticuloProveedor para el artículo
         List<DetalleOrdenCompra> detalles = new ArrayList<>();
-        for (int i = 0; i < cantidadFaltante; i++) {
+        for (ArticuloProveedor ap : articulo.getRelacionesConProveedores()) {
+            BigDecimal subtotal = ap.getPrecioUnitario()
+                    .add(ap.getCargosPedido())
+                    .multiply(BigDecimal.valueOf(cantidadFaltante));
+
             detalles.add(DetalleOrdenCompra.builder()
-                    .ordenCompra(oc)
-                    .articuloProveedor(relacion)
-                    .subTotal(subtotalUnitario)
+                    .articuloProveedor(ap)
+                    .subTotal(subtotal)
                     .build());
         }
-
-        // Calcular monto total
-        BigDecimal montoTotal = subtotalUnitario.multiply(BigDecimal.valueOf(cantidadFaltante));
         oc.setDetalles(detalles);
+        // Calcular monto total
+        BigDecimal montoTotal = detalles.stream()
+                .map(DetalleOrdenCompra::getSubTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         oc.setMontoCompra(montoTotal);
-
         // Guardar en cascada
         OrdenCompra guardada = ordenCompraRepository.save(oc);
         return Optional.of(guardada);
@@ -113,6 +119,7 @@ public class OrdenCompraService {
             int stockSeguridad = articulo.getStockSeguridadIF();
             if (stockActual <= stockSeguridad) {
                 int inventarioMaximo = articulo.getInventarioMax();
+
                 return inventarioMaximo - stockActual;
             } else {
                 return 0;
@@ -148,16 +155,23 @@ public class OrdenCompraService {
                 .cantArt(cantidad)
                 .build();
 
+        // Crear un detalle por cada relación ArticuloProveedor para el artículo
         List<DetalleOrdenCompra> detalles = new ArrayList<>();
-        for (int i = 0; i < cantidad; i++) {
+        for (ArticuloProveedor ap : articulo.getRelacionesConProveedores()) {
+            BigDecimal subtotal = ap.getPrecioUnitario()
+                    .add(ap.getCargosPedido())
+                    .multiply(BigDecimal.valueOf(cantidad));
+
             detalles.add(DetalleOrdenCompra.builder()
-                    .ordenCompra(oc)
-                    .articuloProveedor(relacion)
-                    .subTotal(subtotalUnitario)
+                    .articuloProveedor(ap)
+                    .subTotal(subtotal)
                     .build());
         }
 
-        BigDecimal montoTotal = subtotalUnitario.multiply(BigDecimal.valueOf(cantidad));
+        // Calcular monto total
+        BigDecimal montoTotal = detalles.stream()
+                .map(DetalleOrdenCompra::getSubTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         oc.setDetalles(detalles);
         oc.setMontoCompra(montoTotal);
 

@@ -1,5 +1,6 @@
 package com.stockistas.stockistas2025.Repository;
 
+import com.stockistas.stockistas2025.Entity.ArticuloProveedor;
 import com.stockistas.stockistas2025.Entity.OrdenCompra;
 import com.stockistas.stockistas2025.Entity.Proveedor;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,5 +14,13 @@ public interface OrdenCompraRepository extends JpaRepository<OrdenCompra, Intege
     boolean existsByProveedorAndEstado_CodEstadoOCIn(Proveedor proveedor, List<Integer> codigosEstado);
 
     List<OrdenCompra> findByDetalles_ArticuloProveedor_Articulo_CodArticulo(Integer codArticulo);
+
+    boolean existsByDetalles_ArticuloProveedorAndEstado_CodEstadoOCIn(
+            ArticuloProveedor articuloProveedor,
+            List<Integer> codEstados);
+
+    List<OrdenCompra> findByDetalles_ArticuloProveedor_Articulo_CodArticuloAndEstado_CodEstadoOCIn(
+            Integer codArticulo,
+            List<Integer> codEstados);
 
 }
