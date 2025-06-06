@@ -151,6 +151,7 @@ public class ArticuloService {
     public List<Articulo> obtenerArticulosCriticos() {
         List<Articulo> todos = articuloRepository.findAll();
         return todos.stream()
+                .filter(a -> a.getStockSeguridad() !=null)
                 .filter(a -> a.getFechaHoraBajaArticulo() == null) // activo
                 .filter(a -> a.getStockActual() <= a.getStockSeguridad())
                 .toList();
