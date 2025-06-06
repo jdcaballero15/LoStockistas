@@ -27,10 +27,13 @@ public class ArticuloService {
 
     public Articulo crearArticulo(ArticuloDTO dto) {
 
-        // Buscar proveedor asociado al ProveedorPredeterminado que nos seleccionó en el front
-        Proveedor proveedor = proveedorRepository.findById(dto.getProveedorPredeterminado().getCodProveedor())
-                .orElseThrow(() -> new EntityNotFoundException("Proveedor con ID " + dto.getProveedorPredeterminado().getCodProveedor() + " no encontrado"));
+        Proveedor proveedor = null;
 
+        if (dto.getProveedorPredeterminado() != null && dto.getProveedorPredeterminado().getCodProveedor() != null) {
+            proveedor = proveedorRepository.findById(dto.getProveedorPredeterminado().getCodProveedor())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Proveedor con ID " + dto.getProveedorPredeterminado().getCodProveedor() + " no encontrado"));
+        }
         // Calcular CGI inicial
         BigDecimal CGI = calcularCGI(dto);
 
@@ -50,8 +53,7 @@ public class ArticuloService {
                 .loteOptimo(dto.getLoteOptimo())
                 .inventarioMax(dto.getInventarioMax())
                 .puntoPedido(dto.getPuntoPedido())
-                .stockSeguridadIF(dto.getStockSeguridadIF())
-                .stockSeguridadLF(dto.getStockSeguridadLF())
+                .stockSeguridad(dto.getStockSeguridad())
                 .build();
 
         return articuloRepository.save(articulo);
@@ -88,8 +90,7 @@ public class ArticuloService {
                 .loteOptimo(articulo.getLoteOptimo())
                 .puntoPedido(articulo.getPuntoPedido())
                 .inventarioMax(articulo.getInventarioMax())
-                .stockSeguridadLF(articulo.getStockSeguridadLF())
-                .stockSeguridadIF(articulo.getStockSeguridadIF())
+                .stockSeguridad(articulo.getStockSeguridad())
                 .modeloInventario(articulo.getModeloInventario())
                 .proveedorPredeterminado(articulo.getProveedorPredeterminado())
                 .build();

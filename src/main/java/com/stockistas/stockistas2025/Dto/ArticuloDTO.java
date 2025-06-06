@@ -24,8 +24,7 @@ public class ArticuloDTO {
     private Integer loteOptimo;
     private Integer puntoPedido;
     private Integer inventarioMax;
-    private Integer stockSeguridadLF;
-    private Integer stockSeguridadIF;
+    private Integer stockSeguridad;
     private ModeloInventario modeloInventario;
     private Proveedor proveedorPredeterminado;
 }

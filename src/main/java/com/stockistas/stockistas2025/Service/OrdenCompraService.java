@@ -116,7 +116,7 @@ public class OrdenCompraService {
                 return 0;
             }
         } else if (modelo == ModeloInventario.INTERVALOFIJO) {
-            int stockSeguridad = articulo.getStockSeguridadIF();
+            int stockSeguridad = articulo.getStockSeguridad();
             if (stockActual <= stockSeguridad) {
                 int inventarioMaximo = articulo.getInventarioMax();
 

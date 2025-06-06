@@ -33,13 +33,11 @@ public class Articulo {
     private Integer loteOptimo;
     private Integer puntoPedido;
     private Integer inventarioMax;
-    private Integer stockSeguridadLF;
-    private Integer stockSeguridadIF;
+    private Integer stockSeguridad;
     private String urlImagen;
 
     @ManyToOne
-    @JoinColumn(name = "proveedor_id", nullable = false)
-    @JsonBackReference  // No serializa para evitar recursión
+    @JoinColumn(name = "proveedor_id")
     private Proveedor proveedorPredeterminado;
 
     @OneToMany(mappedBy = "articulo", cascade = CascadeType.ALL)
