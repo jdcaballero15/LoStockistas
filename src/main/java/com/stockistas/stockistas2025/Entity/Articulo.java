@@ -24,14 +24,14 @@ public class Articulo {
     private String nombreArt;
     private String descripArt;
     private Integer demandaAnual;
-    private BigDecimal costoAlmacenamiento;
-    private BigDecimal costoPedido;
-    private BigDecimal costoCompra;
+    private BigDecimal costoAlmacenamiento;  // (loteOptimo/2)* [i(lo definimos nosotros) * precioUnitario]
+    private BigDecimal costoPedido;  //CALCULAR (demandaAnual/loteOptimo)* costoDeHacerUnPedido( "S" PREGUNTAR DE DONDE LO SACAMOS)
+    private BigDecimal costoCompra; //CALCULAR  demandaAnual*precioUnitario(de ArtProveedor del Prov PRED)
     private Integer stockActual;
     private LocalDateTime fechaHoraBajaArticulo;
-    private BigDecimal CGI;
-    private Integer loteOptimo;
-    private Integer puntoPedido;
+    private BigDecimal CGI;  //CALCULAR    (demandaAnual * costoCompra) + costoPedido + costoAlmacenamiento
+    private Integer loteOptimo;  //CALCULAR   (2*demandaAnual* costoDeHacerUnPedido"S"/[i(lo definimos nosotros) * precioUnitario])^(1/2)
+    private Integer puntoPedido;  //CALCULAR  (demandaAnual/365)* demoraEntrega (de ArtProveedor del Prov PRED)
     private Integer inventarioMax;
     private Integer stockSeguridad;
     private String urlImagen;
