@@ -35,6 +35,8 @@ public class Articulo {
     private Integer inventarioMax;
     private Integer stockSeguridad;
     private String urlImagen;
+    @Builder.Default
+    private BigDecimal i = BigDecimal.valueOf(0.01);
 
     @ManyToOne
     @JoinColumn(name = "proveedor_id")

@@ -2,20 +2,19 @@ package com.stockistas.stockistas2025.Service;
 
 import com.stockistas.stockistas2025.Dto.ArticuloDTO;
 import com.stockistas.stockistas2025.Entity.Articulo;
+import com.stockistas.stockistas2025.Entity.ArticuloProveedor;
 import com.stockistas.stockistas2025.Entity.Proveedor;
-import com.stockistas.stockistas2025.Repository.ArticuloRepository;
-import com.stockistas.stockistas2025.Repository.OrdenCompraRepository;
-import com.stockistas.stockistas2025.Repository.ProveedorRepository;
-import com.stockistas.stockistas2025.Repository.DetalleOrdenCompraRepository;
+import com.stockistas.stockistas2025.Repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,50 +23,127 @@ public class ArticuloService {
     private final ArticuloRepository articuloRepository;
     private final ProveedorRepository proveedorRepository;
     private final OrdenCompraRepository ordenCompraRepository;
+    private final ArticuloProveedorRepository articuloProveedorRepository;
 
     public Articulo crearArticulo(ArticuloDTO dto) {
 
         Proveedor proveedor = null;
 
-        if (dto.getProveedorPredeterminado() != null && dto.getProveedorPredeterminado().getCodProveedor() != null) {
+        /*if (dto.getProveedorPredeterminado() != null && dto.getProveedorPredeterminado().getCodProveedor() != null) {
             proveedor = proveedorRepository.findById(dto.getProveedorPredeterminado().getCodProveedor())
                     .orElseThrow(() -> new EntityNotFoundException(
                             "Proveedor con ID " + dto.getProveedorPredeterminado().getCodProveedor() + " no encontrado"));
-        }
+        }*/
         // Calcular CGI inicial
-        BigDecimal CGI = calcularCGI(dto);
+        //BigDecimal CGI = calcularCGI(dto);
 
         // Crear artículo con builder de Lombok
         Articulo articulo = Articulo.builder()
                 .nombreArt(dto.getNombreArt())
                 .descripArt(dto.getDescripArt())
                 .demandaAnual(dto.getDemandaAnual())
-                .costoAlmacenamiento(dto.getCostoAlmacenamiento())
-                .costoPedido(dto.getCostoPedido())
-                .costoCompra(dto.getCostoCompra())
+                //.costoAlmacenamiento(dto.getCostoAlmacenamiento())
+                //.costoPedido(dto.getCostoPedido())
+                //.costoCompra(dto.getCostoCompra())
                 .stockActual(dto.getStockActual())
                 .fechaHoraBajaArticulo(null)
-                .CGI(CGI)
+                //.CGI(CGI)
                 .modeloInventario(dto.getModeloInventario())
-                .proveedorPredeterminado(proveedor)
-                .loteOptimo(dto.getLoteOptimo())
+                //.proveedorPredeterminado(proveedor)
+                //.loteOptimo(dto.getLoteOptimo())
                 .inventarioMax(dto.getInventarioMax())
-                .puntoPedido(dto.getPuntoPedido())
+                //.puntoPedido(dto.getPuntoPedido())
                 .stockSeguridad(dto.getStockSeguridad())
                 .build();
 
         return articuloRepository.save(articulo);
     }
 
-    //Metodo para calcular el CGI
-    private BigDecimal calcularCGI(ArticuloDTO dto) {
-        // Fórmula: CGI = (Demanda * CostoCompra) + CostoPedido + CostoAlmacenamiento
-        BigDecimal demanda = BigDecimal.valueOf(dto.getDemandaAnual());
-        return demanda.multiply(dto.getCostoCompra())
-                .add(dto.getCostoPedido())
-                .add(dto.getCostoAlmacenamiento());
+
+    // Cálculo del Punto de Pedido
+    public Integer calcularPuntoPedido(Articulo a, Proveedor proveedor) {
+        ArticuloProveedor ap = articuloProveedorRepository.findByArticuloAndProveedor(a, proveedor)
+                .orElseThrow(() -> new RuntimeException("No se encontró ArticuloProveedor"));
+
+        // (demandaAnual / 365) * demoraEntrega
+        BigDecimal demandaDiaria = BigDecimal.valueOf(a.getDemandaAnual()).divide(BigDecimal.valueOf(365), 6, RoundingMode.HALF_UP);
+        BigDecimal demoraEntrega = BigDecimal.valueOf(ap.getDemoraEntrega());
+
+        return demandaDiaria.multiply(demoraEntrega).setScale(0, RoundingMode.HALF_UP).intValue();
     }
 
+    // Cálculo del Costo de Compra
+    public BigDecimal calcularCostoCompra(Articulo a, Proveedor proveedor) {
+        ArticuloProveedor ap = articuloProveedorRepository.findByArticuloAndProveedor(a, proveedor)
+                .orElseThrow(() -> new RuntimeException("No se encontró ArticuloProveedor"));
+
+        // demandaAnual * precioUnitario
+        return BigDecimal.valueOf(a.getDemandaAnual()).multiply(ap.getPrecioUnitario());
+    }
+
+    // Cálculo del Lote Óptimo (EOQ)
+    public Integer calcularLoteOptimo(Articulo a, Proveedor proveedor) {
+        ArticuloProveedor ap = articuloProveedorRepository.findByArticuloAndProveedor(a, proveedor)
+                .orElseThrow(() -> new RuntimeException("No se encontró ArticuloProveedor"));
+
+        double demandaAnual = a.getDemandaAnual();
+        double costoPedido = ap.getCargosPedido().doubleValue();
+        double i = a.getI().doubleValue();
+        double precioUnitario = ap.getPrecioUnitario().doubleValue();
+
+        double resultado = Math.sqrt((2 * demandaAnual * costoPedido) / (i * precioUnitario));
+
+        return (int) Math.round(resultado);
+    }
+
+    // Cálculo del Costo de Pedido
+    public BigDecimal calcularCostoPedido(Articulo a, Proveedor proveedor) {
+        ArticuloProveedor ap = articuloProveedorRepository.findByArticuloAndProveedor(a, proveedor)
+                .orElseThrow(() -> new RuntimeException("No se encontró ArticuloProveedor"));
+
+        if (a.getLoteOptimo() == null || a.getLoteOptimo() == 0) {
+            throw new IllegalArgumentException("Lote óptimo no puede ser cero o nulo");
+        }
+
+        // (demandaAnual / loteOptimo) * cargosPedido
+        BigDecimal demandaAnual = BigDecimal.valueOf(a.getDemandaAnual());
+        BigDecimal loteOptimo = BigDecimal.valueOf(a.getLoteOptimo());
+        BigDecimal cargosPedido = ap.getCargosPedido();
+
+        return demandaAnual.divide(loteOptimo, 6, RoundingMode.HALF_UP).multiply(cargosPedido);
+    }
+
+    // Cálculo del Costo de Almacenamiento
+    public BigDecimal calcularCostoAlmacenamiento(Articulo a, Proveedor proveedor) {
+        ArticuloProveedor ap = articuloProveedorRepository.findByArticuloAndProveedor(a, proveedor)
+                .orElseThrow(() -> new RuntimeException("No se encontró ArticuloProveedor"));
+
+        if (a.getLoteOptimo() == null) {
+            throw new IllegalArgumentException("Lote óptimo no puede ser nulo");
+        }
+
+        // (loteOptimo / 2) * (i * precioUnitario)
+        BigDecimal loteOptimo = BigDecimal.valueOf(a.getLoteOptimo());
+        BigDecimal i = a.getI();
+        BigDecimal precioUnitario = ap.getPrecioUnitario();
+
+        BigDecimal factor = i.multiply(precioUnitario);
+        return loteOptimo.divide(BigDecimal.valueOf(2), 6, RoundingMode.HALF_UP).multiply(factor);
+    }
+
+    // Cálculo del CGI
+    public BigDecimal calcularCGI(Articulo a) {
+        if (a.getCostoCompra() == null || a.getCostoPedido() == null || a.getCostoAlmacenamiento() == null) {
+            throw new IllegalArgumentException("Los costos deben estar calculados para poder calcular CGI");
+        }
+
+        // (demandaAnual * costoCompra) + costoPedido + costoAlmacenamiento
+        BigDecimal demandaAnual = BigDecimal.valueOf(a.getDemandaAnual());
+
+        return demandaAnual.multiply(a.getCostoCompra())
+                .add(a.getCostoPedido())
+                .add(a.getCostoAlmacenamiento());
+    }
     //Lista todos los articulos que aun no se han dado de baja y los devuelve como un DTO con la informacion necesaria
     public List<ArticuloDTO> getAll() {
         return articuloRepository.findAll().stream().filter(a->a.getFechaHoraBajaArticulo()==null).map(this::toDTO).toList();
@@ -108,15 +184,25 @@ public class ArticuloService {
         existente.setNombreArt(dto.getNombreArt());
         existente.setDescripArt(dto.getDescripArt());
         existente.setDemandaAnual(dto.getDemandaAnual());
-        existente.setCostoAlmacenamiento(dto.getCostoAlmacenamiento());
-        existente.setCostoPedido(dto.getCostoPedido());
-        existente.setCostoCompra(dto.getCostoCompra());
+        //existente.setCostoAlmacenamiento(dto.getCostoAlmacenamiento());
+        //existente.setCostoPedido(dto.getCostoPedido());
+
         existente.setStockActual(dto.getStockActual());
         existente.setProveedorPredeterminado(dto.getProveedorPredeterminado());
         existente.setModeloInventario(dto.getModeloInventario());
 
-        // Recalculamos el CGI
-        existente.setCGI(calcularCGI(dto));
+
+        existente.setPuntoPedido(calcularPuntoPedido(existente,dto.getProveedorPredeterminado()));
+
+        existente.setCostoCompra(calcularCostoCompra(existente,dto.getProveedorPredeterminado()));
+
+        existente.setLoteOptimo(calcularLoteOptimo(existente,dto.getProveedorPredeterminado()));
+
+        existente.setCostoPedido(calcularCostoPedido(existente,dto.getProveedorPredeterminado()));
+
+        existente.setCostoAlmacenamiento(calcularCostoAlmacenamiento(existente,dto.getProveedorPredeterminado()));
+
+        existente.setCGI(calcularCGI(existente));
 
         return articuloRepository.save(existente);
     }
