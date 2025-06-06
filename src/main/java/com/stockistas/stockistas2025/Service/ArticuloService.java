@@ -147,4 +147,12 @@ public class ArticuloService {
         articulo.setFechaHoraBajaArticulo(LocalDateTime.now());
         articuloRepository.save(articulo);
     }
+
+    public List<Articulo> obtenerArticulosCriticos() {
+        List<Articulo> todos = articuloRepository.findAll();
+        return todos.stream()
+                .filter(a -> a.getFechaHoraBajaArticulo() == null) // activo
+                .filter(a -> a.getStockActual() <= a.getStockSeguridad())
+                .toList();
+    }
 }

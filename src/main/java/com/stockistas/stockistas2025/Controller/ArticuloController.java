@@ -27,6 +27,12 @@ public class ArticuloController {
         return ResponseEntity.ok(articuloService.getById(id));
     }
 
+    @GetMapping("/stock-critico")
+    public ResponseEntity<List<Articulo>> obtenerArticulosConStockCritico() {
+        List<Articulo> criticos = articuloService.obtenerArticulosCriticos();
+        return ResponseEntity.ok(criticos);
+    }
+
     @PostMapping
     public ResponseEntity<Articulo> create(@RequestBody ArticuloDTO dto ) {
         return ResponseEntity.ok(articuloService.crearArticulo(dto));
