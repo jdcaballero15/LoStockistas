@@ -197,25 +197,19 @@ public class ArticuloService {
         existente.setNombreArt(dto.getNombreArt());
         existente.setDescripArt(dto.getDescripArt());
         existente.setDemandaAnual(dto.getDemandaAnual());
-        //existente.setCostoAlmacenamiento(dto.getCostoAlmacenamiento());
-        //existente.setCostoPedido(dto.getCostoPedido());
-
         existente.setStockActual(dto.getStockActual());
-        existente.setProveedorPredeterminado(dto.getProveedorPredeterminado());
         existente.setModeloInventario(dto.getModeloInventario());
+        existente.setProveedorPredeterminado(dto.getProveedorPredeterminado());
 
-
-        existente.setPuntoPedido(calcularPuntoPedido(existente,dto.getProveedorPredeterminado()));
-
-        existente.setCostoCompra(calcularCostoCompra(existente,dto.getProveedorPredeterminado()));
-
-        existente.setLoteOptimo(calcularLoteOptimo(existente,dto.getProveedorPredeterminado()));
-
-        existente.setCostoPedido(calcularCostoPedido(existente,dto.getProveedorPredeterminado()));
-
-        existente.setCostoAlmacenamiento(calcularCostoAlmacenamiento(existente,dto.getProveedorPredeterminado()));
-
-        existente.setCGI(calcularCGI(existente));
+        if (dto.getProveedorPredeterminado() != null) {
+            existente.setProveedorPredeterminado(dto.getProveedorPredeterminado());
+            existente.setPuntoPedido(calcularPuntoPedido(existente, dto.getProveedorPredeterminado()));
+            existente.setCostoCompra(calcularCostoCompra(existente, dto.getProveedorPredeterminado()));
+            existente.setLoteOptimo(calcularLoteOptimo(existente, dto.getProveedorPredeterminado()));
+            existente.setCostoPedido(calcularCostoPedido(existente, dto.getProveedorPredeterminado()));
+            existente.setCostoAlmacenamiento(calcularCostoAlmacenamiento(existente, dto.getProveedorPredeterminado()));
+            existente.setCGI(calcularCGI(existente));
+        }
 
         return articuloRepository.save(existente);
     }
@@ -258,4 +252,20 @@ public class ArticuloService {
                 .filter(a -> a.getStockActual() <= a.getStockSeguridad())
                 .toList();
     }
+
+    public List<Proveedor> getProveedoresByArticulo(Integer articuloId) {
+        Articulo articulo = articuloRepository.findById(articuloId)
+                .orElseThrow(() -> new EntityNotFoundException("Artículo no encontrado"));
+
+        // Obtener todos los ArticuloProveedor relacionados con este artículo
+        List<ArticuloProveedor> articuloProveedores = articuloProveedorRepository.findByArticulo(articulo);
+
+        // Extraer los proveedores de las relaciones
+        return articuloProveedores.stream()
+                .map(ArticuloProveedor::getProveedor)
+                .distinct()
+                .toList();
+    }
+
+
 }

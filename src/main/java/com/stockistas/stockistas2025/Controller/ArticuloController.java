@@ -2,6 +2,9 @@ package com.stockistas.stockistas2025.Controller;
 
 import com.stockistas.stockistas2025.Dto.ArticuloDTO;
 import com.stockistas.stockistas2025.Entity.Articulo;
+import com.stockistas.stockistas2025.Entity.Proveedor;
+import com.stockistas.stockistas2025.Repository.ArticuloProveedorRepository;
+import com.stockistas.stockistas2025.Repository.ArticuloRepository;
 import com.stockistas.stockistas2025.Service.ArticuloService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +19,8 @@ import java.util.List;
 public class ArticuloController {
 
     private final ArticuloService articuloService;
+    private final ArticuloProveedorRepository articuloProveedorRepository;
+    private final ArticuloRepository articuloRepository;
 
     @GetMapping
     public ResponseEntity<List<ArticuloDTO>> getAll() {
@@ -48,4 +53,12 @@ public class ArticuloController {
         articuloService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{articuloId}/proveedores")
+    public ResponseEntity<List<Proveedor>> getProveedoresByArticulo(@PathVariable Integer articuloId) {
+
+        List<Proveedor> proveedores = articuloService.getProveedoresByArticulo(articuloId);
+        return ResponseEntity.ok(proveedores);
+    }
+
 }

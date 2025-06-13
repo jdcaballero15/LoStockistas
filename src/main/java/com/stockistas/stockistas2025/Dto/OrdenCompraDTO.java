@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OrdenCompraDTO {
     private Integer codArticulo;     // ID del artículo a comprar (obligatorio)
-    private Integer codProveedor;    // ID del proveedor (opcional)
+  // ID del proveedor (opcional)
     private Integer cantidad;        // Cantidad a comprar (opcional)
 
 
