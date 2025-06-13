@@ -25,9 +25,12 @@ public class ArticuloService {
     private final OrdenCompraRepository ordenCompraRepository;
     private final ArticuloProveedorRepository articuloProveedorRepository;
 
+    //-----------------------------------------------------------------------------------------------
+    //Creación del artículo
     public Articulo crearArticulo(ArticuloDTO dto) {
 
         Proveedor proveedor = null;
+
 
         /*if (dto.getProveedorPredeterminado() != null && dto.getProveedorPredeterminado().getCodProveedor() != null) {
             proveedor = proveedorRepository.findById(dto.getProveedorPredeterminado().getCodProveedor())
@@ -36,7 +39,6 @@ public class ArticuloService {
         }*/
         // Calcular CGI inicial
         //BigDecimal CGI = calcularCGI(dto);
-
         // Crear artículo con builder de Lombok
         Articulo articulo = Articulo.builder()
                 .nombreArt(dto.getNombreArt())
@@ -59,7 +61,7 @@ public class ArticuloService {
         return articuloRepository.save(articulo);
     }
 
-
+    //-----------------------------------------------------------------------------------------------
     // Cálculo del Punto de Pedido
     public Integer calcularPuntoPedido(Articulo a, Proveedor proveedor) {
         ArticuloProveedor ap = articuloProveedorRepository.findByArticuloAndProveedor(a, proveedor)
@@ -72,6 +74,7 @@ public class ArticuloService {
         return demandaDiaria.multiply(demoraEntrega).setScale(0, RoundingMode.HALF_UP).intValue();
     }
 
+    //-----------------------------------------------------------------------------------------------
     // Cálculo del Costo de Compra
     public BigDecimal calcularCostoCompra(Articulo a, Proveedor proveedor) {
         ArticuloProveedor ap = articuloProveedorRepository.findByArticuloAndProveedor(a, proveedor)
@@ -81,6 +84,7 @@ public class ArticuloService {
         return BigDecimal.valueOf(a.getDemandaAnual()).multiply(ap.getPrecioUnitario());
     }
 
+    //-----------------------------------------------------------------------------------------------
     // Cálculo del Lote Óptimo (EOQ)
     public Integer calcularLoteOptimo(Articulo a, Proveedor proveedor) {
         ArticuloProveedor ap = articuloProveedorRepository.findByArticuloAndProveedor(a, proveedor)
@@ -96,6 +100,7 @@ public class ArticuloService {
         return (int) Math.round(resultado);
     }
 
+    //-----------------------------------------------------------------------------------------------
     // Cálculo del Costo de Pedido
     public BigDecimal calcularCostoPedido(Articulo a, Proveedor proveedor) {
         ArticuloProveedor ap = articuloProveedorRepository.findByArticuloAndProveedor(a, proveedor)
@@ -113,6 +118,7 @@ public class ArticuloService {
         return demandaAnual.divide(loteOptimo, 6, RoundingMode.HALF_UP).multiply(cargosPedido);
     }
 
+    //-----------------------------------------------------------------------------------------------
     // Cálculo del Costo de Almacenamiento
     public BigDecimal calcularCostoAlmacenamiento(Articulo a, Proveedor proveedor) {
         ArticuloProveedor ap = articuloProveedorRepository.findByArticuloAndProveedor(a, proveedor)
@@ -131,24 +137,29 @@ public class ArticuloService {
         return loteOptimo.divide(BigDecimal.valueOf(2), 6, RoundingMode.HALF_UP).multiply(factor);
     }
 
+    //-----------------------------------------------------------------------------------------------
     // Cálculo del CGI
     public BigDecimal calcularCGI(Articulo a) {
         if (a.getCostoCompra() == null || a.getCostoPedido() == null || a.getCostoAlmacenamiento() == null) {
             throw new IllegalArgumentException("Los costos deben estar calculados para poder calcular CGI");
         }
 
-        // (demandaAnual * costoCompra) + costoPedido + costoAlmacenamiento
+        //  costoCompra + costoPedido + costoAlmacenamiento
         BigDecimal demandaAnual = BigDecimal.valueOf(a.getDemandaAnual());
 
-        return demandaAnual.multiply(a.getCostoCompra())
+        return a.getCostoCompra()
                 .add(a.getCostoPedido())
                 .add(a.getCostoAlmacenamiento());
     }
     //Lista todos los articulos que aun no se han dado de baja y los devuelve como un DTO con la informacion necesaria
+
+    //-----------------------------------------------------------------------------------------------
+    //Mostrar todos los articulos
     public List<ArticuloDTO> getAll() {
         return articuloRepository.findAll().stream().filter(a->a.getFechaHoraBajaArticulo()==null).map(this::toDTO).toList();
     }
 
+    //-----------------------------------------------------------------------------------------------
     //Conversión del articulo encontrado a DTO para devolverlo al front
     public ArticuloDTO toDTO(Articulo articulo) {
         if (articulo == null) return null;
@@ -172,12 +183,14 @@ public class ArticuloService {
                 .build();
     }
 
+    //-----------------------------------------------------------------------------------------------
     //Buscamos articulos por codArticulo
     public Articulo getById(Integer id) {
         return articuloRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Artículo no encontrado"));
     }
 
+    //-----------------------------------------------------------------------------------------------
     //Nos llega la informacion modificada del articulo en un DTO y seteamos la nueva información
     public Articulo update(Integer id, ArticuloDTO dto) {
         Articulo existente = getById(id);
@@ -207,6 +220,7 @@ public class ArticuloService {
         return articuloRepository.save(existente);
     }
 
+    //-----------------------------------------------------------------------------------------------
     //Eliminamos un articulo siguiendo ciertas condiciones
     public void delete(Integer codArticulo) {
 
@@ -234,6 +248,8 @@ public class ArticuloService {
         articuloRepository.save(articulo);
     }
 
+    //-----------------------------------------------------------------------------------------------
+    //Obtener los artículos críticos
     public List<Articulo> obtenerArticulosCriticos() {
         List<Articulo> todos = articuloRepository.findAll();
         return todos.stream()
