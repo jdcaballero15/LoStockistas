@@ -60,5 +60,11 @@ public class ArticuloController {
         List<Proveedor> proveedores = articuloService.getProveedoresByArticulo(articuloId);
         return ResponseEntity.ok(proveedores);
     }
+    //USAR PARA EL FILTRO DE LOS ARTICULOS AL MOMENTO DE CREAR UNA ORDEN MANUAL
+    @GetMapping("/con-proveedor")
+    public ResponseEntity<List<Articulo>> getArticulosConProveedor() {
+        List<Articulo> articulos = articuloRepository.findByProveedorPredeterminadoIsNotNull();
+        return ResponseEntity.ok(articulos);
+    }
 
 }

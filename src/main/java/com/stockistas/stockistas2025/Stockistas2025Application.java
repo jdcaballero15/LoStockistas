@@ -32,11 +32,11 @@ public class Stockistas2025Application {
 			System.out.println("Se esta ejecutando Stockistas");
 
 			// Crear los estados
-			EstadoOC pendiente = EstadoOC
+			/*EstadoOC pendiente = EstadoOC
 					.builder()
                     .codEstadoOC(1)
                     .nombreEstadoOC("PENDIENTE")
-                    .build();
+                    .build();*/
 
 
 			/*EstadoOC enviada = EstadoOC.builder()
@@ -58,7 +58,7 @@ public class Stockistas2025Application {
 			//estadoOCRepo.save(enviada);
 			//estadoOCRepo.save(cancelada);
 			//estadoOCRepo.save(finalizada);
-			estadoOCRepo.save(pendiente);
+			//estadoOCRepo.save(pendiente);
 
             // Crear los proveedores
 

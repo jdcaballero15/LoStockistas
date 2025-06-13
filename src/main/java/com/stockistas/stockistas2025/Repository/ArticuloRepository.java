@@ -13,4 +13,5 @@ public interface ArticuloRepository extends JpaRepository<Articulo, Integer> {
 
     boolean existsByProveedorPredeterminado(Proveedor proveedor);
 
+    List<Articulo> findByProveedorPredeterminadoIsNotNull();
 }
