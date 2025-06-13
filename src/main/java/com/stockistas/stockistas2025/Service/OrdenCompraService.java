@@ -222,5 +222,37 @@ public class OrdenCompraService {
             articuloRepository.save(detalle.getArticuloProveedor().getArticulo());
         }
     }
+
+    public OrdenCompra editarCantidadOrdenCompra(Integer idOC, Integer nuevaCantidad) {
+        OrdenCompra oc = ordenCompraRepository.findById(idOC)
+                .orElseThrow(() -> new EntityNotFoundException("Orden de compra no encontrada"));
+
+        // Validar estado
+        if (oc.getEstado().getCodEstadoOC() != 1) {
+            throw new IllegalStateException("Solo se puede editar una orden en estado PENDIENTE");
+        }
+
+        // Actualizar cantidad total
+        oc.setCantArt(nuevaCantidad);
+
+        // Recalcular subtotales en cada detalle
+        List<DetalleOrdenCompra> detalles = oc.getDetalles();
+        BigDecimal nuevoMontoTotal = BigDecimal.ZERO;
+
+        for (DetalleOrdenCompra detalle : detalles) {
+            ArticuloProveedor ap = detalle.getArticuloProveedor();
+            BigDecimal nuevoSubtotal = ap.getPrecioUnitario()
+                    .add(ap.getCargosPedido())
+                    .multiply(BigDecimal.valueOf(nuevaCantidad));
+
+            detalle.setSubTotal(nuevoSubtotal);
+            nuevoMontoTotal = nuevoMontoTotal.add(nuevoSubtotal);
+        }
+
+        oc.setMontoCompra(nuevoMontoTotal);
+
+        return ordenCompraRepository.save(oc);
+    }
+
 }
 
