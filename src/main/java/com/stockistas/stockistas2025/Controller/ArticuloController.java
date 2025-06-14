@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/articulos")
@@ -62,9 +63,13 @@ public class ArticuloController {
     }
     //USAR PARA EL FILTRO DE LOS ARTICULOS AL MOMENTO DE CREAR UNA ORDEN MANUAL
     @GetMapping("/con-proveedor")
-    public ResponseEntity<List<Articulo>> getArticulosConProveedor() {
+    public ResponseEntity<List<ArticuloDTO>> getArticulosConProveedor() {
         List<Articulo> articulos = articuloRepository.findByProveedorPredeterminadoIsNotNull();
-        return ResponseEntity.ok(articulos);
+        // Convertir cada Articulo a ArticuloDTO
+        List<ArticuloDTO> articulosDTO = articulos.stream()
+                .map(articuloService::toDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(articulosDTO);
     }
 
 }

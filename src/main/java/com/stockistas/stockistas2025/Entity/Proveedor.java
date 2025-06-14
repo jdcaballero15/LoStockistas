@@ -25,6 +25,7 @@ public class Proveedor {
     private String telefonoProveedor;
     private String emailProveedor;
     private LocalDateTime fechaHoraBajaProveedor;
+    private Integer intervaloReposicion;
 
     //@OneToMany(mappedBy = "proveedor", cascade = CascadeType.ALL)
     //@JsonBackReference  // Aquí serializa la lista normalmente

@@ -3,8 +3,10 @@ package com.stockistas.stockistas2025.Service;
 import com.stockistas.stockistas2025.Dto.ArticuloDTO;
 import com.stockistas.stockistas2025.Entity.Articulo;
 import com.stockistas.stockistas2025.Entity.ArticuloProveedor;
+import com.stockistas.stockistas2025.Entity.ModeloInventario;
 import com.stockistas.stockistas2025.Entity.Proveedor;
 import com.stockistas.stockistas2025.Repository.*;
+import io.swagger.models.Model;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -202,6 +204,9 @@ public class ArticuloService {
         existente.setProveedorPredeterminado(dto.getProveedorPredeterminado());
 
         if (dto.getProveedorPredeterminado() != null) {
+            if(dto.getProveedorPredeterminado().getIntervaloReposicion() != null && existente.getModeloInventario() == ModeloInventario.LOTEFIJO){
+                existente.setModeloInventario(ModeloInventario.INTERVALOFIJO);
+            }
             existente.setProveedorPredeterminado(dto.getProveedorPredeterminado());
             existente.setPuntoPedido(calcularPuntoPedido(existente, dto.getProveedorPredeterminado()));
             existente.setCostoCompra(calcularCostoCompra(existente, dto.getProveedorPredeterminado()));
