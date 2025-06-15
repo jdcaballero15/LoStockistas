@@ -37,6 +37,7 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	implementation 'io.springfox:springfox-boot-starter:3.0.0'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+	implementation 'com.cloudinary:cloudinary-http44:1.29.0'
 }
 
 tasks.named('test') {

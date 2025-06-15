@@ -27,6 +27,7 @@ public class ArticuloDTO {
     private Integer stockSeguridad;
     private ModeloInventario modeloInventario;
     private Proveedor proveedorPredeterminado;
+    private String urlImagen;
 }
 
 
