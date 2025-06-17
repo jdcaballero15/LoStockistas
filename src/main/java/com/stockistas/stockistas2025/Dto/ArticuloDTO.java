@@ -16,8 +16,8 @@ public class ArticuloDTO {
     private String descripArt;
     private Integer demandaAnual;
     private BigDecimal costoAlmacenamiento;
-    //private BigDecimal costoPedido;
-    //private BigDecimal costoCompra;
+    private BigDecimal costoPedido;
+    private BigDecimal costoCompra;
     private Integer stockActual;
     private LocalDateTime fechaHoraBajaArticulo;
     private BigDecimal CGI;
@@ -27,6 +27,7 @@ public class ArticuloDTO {
     private Integer stockSeguridad;
     private ModeloInventario modeloInventario;
     private Proveedor proveedorPredeterminado;
+    private String urlImagen;
     private Double nivelServicio;
     private Double desviacionEstandar;
 }

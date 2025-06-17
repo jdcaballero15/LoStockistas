@@ -289,5 +289,24 @@ public class ArticuloService {
                 .toList();
     }
 
+    //metodo para crearArticulo pero con una foto
+    public Articulo crearArticuloConImagen(ArticuloDTO dto) {
+        Articulo art = Articulo.builder()
+                .nombreArt(dto.getNombreArt())
+                .descripArt(dto.getDescripArt())
+                .demandaAnual(dto.getDemandaAnual())
+                .stockActual(dto.getStockActual())
+                .fechaHoraBajaArticulo(null)
+                .modeloInventario(dto.getModeloInventario())
+             //   .proveedorPredeterminado(dto.getProveedorPredeterminado())
+                .inventarioMax(dto.getInventarioMax())
+                .stockSeguridad(dto.getStockSeguridad())
+                .urlImagen(dto.getUrlImagen())    // ← Asegúrate de que Articulo tenga este campo
+                .build();
+
+        return articuloRepository.save(art);
+    }
+
+
 
 }
