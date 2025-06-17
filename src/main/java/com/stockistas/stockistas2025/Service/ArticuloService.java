@@ -10,6 +10,7 @@ import io.swagger.models.Model;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.apache.commons.math3.distribution.NormalDistribution;
 
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
@@ -32,15 +33,6 @@ public class ArticuloService {
     public Articulo crearArticulo(ArticuloDTO dto) {
 
         Proveedor proveedor = null;
-
-
-        /*if (dto.getProveedorPredeterminado() != null && dto.getProveedorPredeterminado().getCodProveedor() != null) {
-            proveedor = proveedorRepository.findById(dto.getProveedorPredeterminado().getCodProveedor())
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            "Proveedor con ID " + dto.getProveedorPredeterminado().getCodProveedor() + " no encontrado"));
-        }*/
-        // Calcular CGI inicial
-        //BigDecimal CGI = calcularCGI(dto);
         // Crear artículo con builder de Lombok
         Articulo articulo = Articulo.builder()
                 .nombreArt(dto.getNombreArt())
@@ -57,12 +49,34 @@ public class ArticuloService {
                 //.loteOptimo(dto.getLoteOptimo())
                 .inventarioMax(dto.getInventarioMax())
                 //.puntoPedido(dto.getPuntoPedido())
-                .stockSeguridad(dto.getStockSeguridad())
+                .stockSeguridad(calcularStockSeguridad(dto.getNivelServicio(),dto.getDesviacionEstandar()))
                 .build();
 
         return articuloRepository.save(articulo);
     }
 
+
+    //-----------------------------------------------------------------------------------------------
+    public Integer calcularStockSeguridad(Double nivelServicio, Double desviacionEstandar){
+        if (nivelServicio == null || desviacionEstandar == null) {
+            throw new IllegalArgumentException("Nivel de servicio y desviación estándar no pueden ser nulos.");
+        }
+
+        if (nivelServicio <= 0.0 || nivelServicio >= 1.0) {
+            throw new IllegalArgumentException("El nivel de servicio debe estar entre 0 y 1 (sin incluir).");
+        }
+
+        if (desviacionEstandar < 0) {
+            throw new IllegalArgumentException("La desviación estándar no puede ser negativa.");
+        }
+
+        NormalDistribution normal = new NormalDistribution();
+        double z = normal.inverseCumulativeProbability(nivelServicio);
+
+        double stockSeguridad = z * desviacionEstandar;
+
+        return (int) Math.ceil(stockSeguridad); // siempre redondeamos hacia arriba
+    }
     //-----------------------------------------------------------------------------------------------
     // Cálculo del Punto de Pedido
     public Integer calcularPuntoPedido(Articulo a, Proveedor proveedor) {
@@ -141,16 +155,19 @@ public class ArticuloService {
 
     //-----------------------------------------------------------------------------------------------
     // Cálculo del CGI
-    public BigDecimal calcularCGI(Articulo a) {
-        if (a.getCostoCompra() == null || a.getCostoPedido() == null || a.getCostoAlmacenamiento() == null) {
+    public BigDecimal calcularCGI(Articulo a, Proveedor proveedor) {
+
+        Optional<ArticuloProveedor> ap = articuloProveedorRepository.findByArticuloAndProveedor(a, proveedor);
+
+        /*if (a.getCostoCompra() == null || a.getCostoPedido() == null || a.getCostoAlmacenamiento() == null) {
             throw new IllegalArgumentException("Los costos deben estar calculados para poder calcular CGI");
-        }
+        }*/
 
         //  costoCompra + costoPedido + costoAlmacenamiento
         BigDecimal demandaAnual = BigDecimal.valueOf(a.getDemandaAnual());
 
-        return a.getCostoCompra()
-                .add(a.getCostoPedido())
+        return ap.get().getCargosPedido()
+                .add(ap.get().getPrecioUnitario())
                 .add(a.getCostoAlmacenamiento());
     }
     //Lista todos los articulos que aun no se han dado de baja y los devuelve como un DTO con la informacion necesaria
@@ -172,8 +189,8 @@ public class ArticuloService {
                 .descripArt(articulo.getDescripArt())
                 .demandaAnual(articulo.getDemandaAnual())
                 .costoAlmacenamiento(articulo.getCostoAlmacenamiento())
-                .costoPedido(articulo.getCostoPedido())
-                .costoCompra(articulo.getCostoCompra())
+                //.costoPedido(articulo.getCostoPedido())
+                //.costoCompra(articulo.getCostoCompra())
                 .stockActual(articulo.getStockActual())
                 .CGI(articulo.getCGI())
                 .loteOptimo(articulo.getLoteOptimo())
@@ -209,11 +226,11 @@ public class ArticuloService {
             }
             existente.setProveedorPredeterminado(dto.getProveedorPredeterminado());
             existente.setPuntoPedido(calcularPuntoPedido(existente, dto.getProveedorPredeterminado()));
-            existente.setCostoCompra(calcularCostoCompra(existente, dto.getProveedorPredeterminado()));
+            //existente.setCostoCompra(calcularCostoCompra(existente, dto.getProveedorPredeterminado()));
             existente.setLoteOptimo(calcularLoteOptimo(existente, dto.getProveedorPredeterminado()));
-            existente.setCostoPedido(calcularCostoPedido(existente, dto.getProveedorPredeterminado()));
+            //existente.setCostoPedido(calcularCostoPedido(existente, dto.getProveedorPredeterminado()));
             existente.setCostoAlmacenamiento(calcularCostoAlmacenamiento(existente, dto.getProveedorPredeterminado()));
-            existente.setCGI(calcularCGI(existente));
+            existente.setCGI(calcularCGI(existente,dto.getProveedorPredeterminado()));
         }
 
         return articuloRepository.save(existente);

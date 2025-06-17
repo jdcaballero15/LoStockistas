@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -22,9 +23,10 @@ public class OrdenCompraService {
     private final ArticuloProveedorRepository articuloProveedorRepository;
     private final DetalleOrdenCompraRepository detalleOrdenCompraRepository;
 
-    /**
-     * Genera automáticamente una Orden de Compra si el artículo requiere reposición
-     * y no hay otra orden en curso (Pendiente o Enviada) para ese artículo.
+    //-----------------------------------------------------------------------------------------------
+    /*
+     Genera automáticamente una Orden de Compra si el artículo requiere reposición
+     y no hay otra orden en curso (Pendiente o Enviada) para ese artículo.
      */
     public Optional<OrdenCompra> generarOrdenCompraSiCorresponde(Integer codArticulo) {
         Articulo articulo = articuloRepository.findById(codArticulo)
@@ -85,33 +87,39 @@ public class OrdenCompraService {
         oc.setMontoCompra(montoTotal);
         // Guardar en cascada
         OrdenCompra guardada = ordenCompraRepository.save(oc);
+
+        articulo.setFechaUltimoPedido(LocalDateTime.now());
+        articuloRepository.save(articulo);
+
         return Optional.of(guardada);
     }
 
+    //-----------------------------------------------------------------------------------------------
     public List<OrdenCompra> getAll() {
         return ordenCompraRepository.findAll();
     }
 
+    //-----------------------------------------------------------------------------------------------
     public OrdenCompra getById(Integer id) {
         return ordenCompraRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Orden de compra con ID " + id + " no encontrada"));
     }
 
+    //-----------------------------------------------------------------------------------------------
     public List<OrdenCompra> getOrdenesCompraByArticulo(Integer codArticulo) {
         return ordenCompraRepository.findByDetalles_ArticuloProveedor_Articulo_CodArticulo(codArticulo);
     }
 
+    //-----------------------------------------------------------------------------------------------
     public int calcularFaltanteSegunModelo(Articulo articulo) {
         int stockActual = articulo.getStockActual();
         ModeloInventario modelo = articulo.getModeloInventario();
 
         if (modelo == ModeloInventario.LOTEFIJO) {
             int puntoDePedido = articulo.getPuntoPedido();
-            if (stockActual <= puntoDePedido) {
+            if (stockActual <= puntoDePedido+articulo.getStockSeguridad()) {
                 int loteOptimo = articulo.getLoteOptimo();
-                System.out.println("EL LOTE OPTIMO QUE TENEMOS ES:"+loteOptimo);
-                System.out.println("EL STOCK ACTUAL QUE TENEMOS ES:"+stockActual);
-                return loteOptimo - stockActual;
+                return loteOptimo;
             } else {
                 return 0;
             }
@@ -128,6 +136,7 @@ public class OrdenCompraService {
         return 0; // por seguridad
     }
 
+    //-----------------------------------------------------------------------------------------------
     public OrdenCompra crearOrdenCompraManual(OrdenCompraDTO dto) {
         Articulo articulo = articuloRepository.findById(dto.getCodArticulo())
                 .orElseThrow(() -> new EntityNotFoundException("Artículo no encontrado"));
@@ -180,9 +189,13 @@ public class OrdenCompraService {
         oc.setDetalles(detalles);
         oc.setMontoCompra(montoTotal);
 
+        articulo.setFechaUltimoPedido(LocalDateTime.now());
+        articuloRepository.save(articulo);
+
         return ordenCompraRepository.save(oc);
     }
 
+    //-----------------------------------------------------------------------------------------------
     public void cancelarOrdenCompra(Integer id) {
         OrdenCompra oc = ordenCompraRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Orden de Compra no encontrada"));
@@ -197,6 +210,7 @@ public class OrdenCompraService {
         ordenCompraRepository.save(oc);
     }
 
+    //-----------------------------------------------------------------------------------------------
     public void enviarOrdenCompra(Integer id) {
         OrdenCompra oc = ordenCompraRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Orden de Compra no encontrada"));
@@ -212,6 +226,7 @@ public class OrdenCompraService {
         ordenCompraRepository.save(oc);
     }
 
+    //-----------------------------------------------------------------------------------------------
     public void finalizarOrdenCompra(Integer id) {
         OrdenCompra oc = ordenCompraRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Orden de Compra no encontrada"));
@@ -228,6 +243,7 @@ public class OrdenCompraService {
         }
     }
 
+    //-----------------------------------------------------------------------------------------------
     public OrdenCompra editarCantidadOrdenCompra(Integer idOC, Integer nuevaCantidad) {
         OrdenCompra oc = ordenCompraRepository.findById(idOC)
                 .orElseThrow(() -> new EntityNotFoundException("Orden de compra no encontrada"));
