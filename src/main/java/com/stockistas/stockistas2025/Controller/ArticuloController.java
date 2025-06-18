@@ -67,7 +67,9 @@ public class ArticuloController {
             @RequestParam("inventarioMax") Integer inventarioMax,
             @RequestParam("stockSeguridad") Integer stockSeguridad,
             @RequestParam("modeloInventario")  String modeloInventario,
-            @RequestParam("archivo")           MultipartFile archivo
+            @RequestParam("archivo")          MultipartFile archivo,
+            @RequestParam("nivelServicio")   double nivelServicio,
+            @RequestParam("desviacionEstandar")   double desviacionEstandar
     ) throws IOException {
 
         // 1) Subo la imagen y obtengo la URL
@@ -85,6 +87,8 @@ public class ArticuloController {
                 .inventarioMax(inventarioMax)
                 .stockSeguridad(stockSeguridad)
                 .modeloInventario(ModeloInventario.valueOf(modeloInventario))
+                .nivelServicio(nivelServicio)
+                .desviacionEstandar(desviacionEstandar)
                 .urlImagen(urlImagen)
                 .build();
 

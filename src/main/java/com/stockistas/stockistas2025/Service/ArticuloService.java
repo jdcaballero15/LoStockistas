@@ -197,6 +197,7 @@ public class ArticuloService {
                 .puntoPedido(articulo.getPuntoPedido())
                 .inventarioMax(articulo.getInventarioMax())
                 .stockSeguridad(articulo.getStockSeguridad())
+                .urlImagen(articulo.getUrlImagen())
                 .modeloInventario(articulo.getModeloInventario())
                 .proveedorPredeterminado(articulo.getProveedorPredeterminado())
                 .build();
@@ -301,6 +302,8 @@ public class ArticuloService {
              //   .proveedorPredeterminado(dto.getProveedorPredeterminado())
                 .inventarioMax(dto.getInventarioMax())
                 .stockSeguridad(dto.getStockSeguridad())
+                .nivelServicio(dto.getNivelServicio())
+                .desviacionEstandar(dto.getDesviacionEstandar())
                 .urlImagen(dto.getUrlImagen())    // ← Asegúrate de que Articulo tenga este campo
                 .build();
 
