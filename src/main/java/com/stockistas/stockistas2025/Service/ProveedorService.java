@@ -40,6 +40,7 @@ public class ProveedorService {
                 .emailProveedor(dto.getCorreo())
                 .telefonoProveedor(dto.getTelefono())
                 .direccionProveedor(dto.getDireccion())
+                .intervaloReposicion(dto.getIntervaloReposicion())
                 .build();
 
         Proveedor proveedorGuardado = proveedorRepository.save(proveedor);

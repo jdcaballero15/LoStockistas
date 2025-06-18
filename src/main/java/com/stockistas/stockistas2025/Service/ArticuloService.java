@@ -223,7 +223,8 @@ public class ArticuloService {
         existente.setStockActual(dto.getStockActual());
         existente.setModeloInventario(dto.getModeloInventario());
         existente.setProveedorPredeterminado(dto.getProveedorPredeterminado());
-
+        existente.setNivelServicio(dto.getNivelServicio());
+        existente.setDesviacionEstandar(dto.getDesviacionEstandar());
         if (dto.getProveedorPredeterminado() != null) {
             if(dto.getProveedorPredeterminado().getIntervaloReposicion() != null && existente.getModeloInventario() == ModeloInventario.LOTEFIJO){
                 existente.setModeloInventario(ModeloInventario.INTERVALOFIJO);

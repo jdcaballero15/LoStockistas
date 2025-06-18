@@ -10,5 +10,6 @@ public class ProveedorDTO {
     private String correo;
     private String direccion;
     private String telefono;
+    private Integer intervaloReposicion;
     private List<ArticuloProveedorDTO> articulos;
 }
