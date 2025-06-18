@@ -16,6 +16,7 @@ public class ArticuloDTO {
     private String descripArt;
     private Integer demandaAnual;
     private BigDecimal costoAlmacenamiento;
+    private BigDecimal costoCompra;
     private BigDecimal costoPedido;
     private Integer stockActual;
     private LocalDateTime fechaHoraBajaArticulo;
