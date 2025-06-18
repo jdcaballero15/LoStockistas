@@ -53,6 +53,8 @@ public class ArticuloService {
                 .inventarioMax(dto.getInventarioMax())
                 //.puntoPedido(dto.getPuntoPedido())
                 .stockSeguridad(calcularStockSeguridad(dto.getNivelServicio(),dto.getDesviacionEstandar()))
+                .nivelServicio(dto.getNivelServicio()/100)
+                .desviacionEstandar(dto.getDesviacionEstandar())
                 .build();
 
         return articuloRepository.save(articulo);
@@ -229,7 +231,7 @@ public class ArticuloService {
         existente.setStockActual(dto.getStockActual());
         existente.setModeloInventario(dto.getModeloInventario());
         existente.setProveedorPredeterminado(dto.getProveedorPredeterminado());
-        existente.setNivelServicio(dto.getNivelServicio());
+        existente.setNivelServicio(dto.getNivelServicio()/100);
         existente.setDesviacionEstandar(dto.getDesviacionEstandar());
         if (dto.getProveedorPredeterminado() != null) {
             if(dto.getProveedorPredeterminado().getIntervaloReposicion() != null && existente.getModeloInventario() == ModeloInventario.LOTEFIJO){
