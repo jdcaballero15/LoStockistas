@@ -46,9 +46,9 @@ public class Articulo {
     @JoinColumn(name = "proveedor_id")
     private Proveedor proveedorPredeterminado;
 
-    @OneToMany(mappedBy = "articulo", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "articulo", cascade = CascadeType.ALL)
     @JsonManagedReference
-    private List<ArticuloProveedor> relacionesConProveedores;
+    private ArticuloProveedor relacionesConProveedores;
 
     //@OneToMany(mappedBy = "articulo", cascade = CascadeType.ALL)
     //@JsonBackReference

@@ -45,7 +45,7 @@ public class ArticuloController {
     }
 
     @GetMapping("/stock-critico")
-    public ResponseEntity<List<Articulo>> obtenerArticulosConStockCritico() {
+    public ResponseEntity<List<ArticuloDTO>> obtenerArticulosConStockCritico() {
         return ResponseEntity.ok(articuloService.obtenerArticulosCriticos());
     }
 

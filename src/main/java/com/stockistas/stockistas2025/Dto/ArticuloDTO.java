@@ -17,7 +17,6 @@ public class ArticuloDTO {
     private Integer demandaAnual;
     private BigDecimal costoAlmacenamiento;
     private BigDecimal costoPedido;
-    private BigDecimal costoCompra;
     private Integer stockActual;
     private LocalDateTime fechaHoraBajaArticulo;
     private BigDecimal CGI;

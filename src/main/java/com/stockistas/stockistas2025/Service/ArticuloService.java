@@ -182,6 +182,9 @@ public class ArticuloService {
     //Conversión del articulo encontrado a DTO para devolverlo al front
     public ArticuloDTO toDTO(Articulo articulo) {
         if (articulo == null) return null;
+        ArticuloProveedor ap = articulo.getRelacionesConProveedores();
+
+        BigDecimal precioUnitario = ap != null ? ap.getPrecioUnitario() : BigDecimal.ZERO;
 
         return ArticuloDTO.builder()
                 .codArticulo(articulo.getCodArticulo())
@@ -189,7 +192,7 @@ public class ArticuloService {
                 .descripArt(articulo.getDescripArt())
                 .demandaAnual(articulo.getDemandaAnual())
                 .costoAlmacenamiento(articulo.getCostoAlmacenamiento())
-                //.costoPedido(articulo.getCostoPedido())
+                .costoPedido(precioUnitario)
                 //.costoCompra(articulo.getCostoCompra())
                 .stockActual(articulo.getStockActual())
                 .CGI(articulo.getCGI())
@@ -249,12 +252,14 @@ public class ArticuloService {
             throw new IllegalStateException("No se puede dar de baja: el artículo tiene unidades en stock.");
         }
 
-        //Verificamos si tiene órdenes de compra en estado pendiente o enviada
-        boolean tieneOrdenesRelacionadas = articulo.getRelacionesConProveedores().stream()
-                .anyMatch(ap -> ordenCompraRepository.existsByDetalles_ArticuloProveedorAndEstado_CodEstadoOCIn(
+        ArticuloProveedor ap = articulo.getRelacionesConProveedores();
+
+        boolean tieneOrdenesRelacionadas = ap != null &&
+                ordenCompraRepository.existsByDetalles_ArticuloProveedorAndEstado_CodEstadoOCIn(
                         ap,
                         List.of(1, 2) // Estados PENDIENTE o ENVIADA
-                ));
+                );
+
 
         if (tieneOrdenesRelacionadas) {
             throw new IllegalStateException("No se puede dar de baja: el artículo tiene órdenes de compra pendientes o enviadas.");
@@ -267,12 +272,14 @@ public class ArticuloService {
 
     //-----------------------------------------------------------------------------------------------
     //Obtener los artículos críticos
-    public List<Articulo> obtenerArticulosCriticos() {
+    public List<ArticuloDTO> obtenerArticulosCriticos() {
         List<Articulo> todos = articuloRepository.findAll();
+
         return todos.stream()
-                .filter(a -> a.getStockSeguridad() !=null)
+                .filter(a -> a.getStockSeguridad() != null)
                 .filter(a -> a.getFechaHoraBajaArticulo() == null) // activo
                 .filter(a -> a.getStockActual() <= a.getStockSeguridad())
+                .map(this::toDTO) // llamás al método de mapeo
                 .toList();
     }
 

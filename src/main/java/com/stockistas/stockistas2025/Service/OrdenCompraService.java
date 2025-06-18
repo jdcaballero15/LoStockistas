@@ -69,7 +69,7 @@ public class OrdenCompraService {
 
         // Crear un detalle por cada relación ArticuloProveedor para el artículo
         List<DetalleOrdenCompra> detalles = new ArrayList<>();
-        for (ArticuloProveedor ap : articulo.getRelacionesConProveedores()) {
+        ArticuloProveedor ap  = articulo.getRelacionesConProveedores();
             BigDecimal subtotal = ap.getPrecioUnitario()
                     .add(ap.getCargosPedido())
                     .multiply(BigDecimal.valueOf(cantidadFaltante));
@@ -78,7 +78,7 @@ public class OrdenCompraService {
                     .articuloProveedor(ap)
                     .subTotal(subtotal)
                     .build());
-        }
+
         oc.setDetalles(detalles);
         // Calcular monto total
         BigDecimal montoTotal = detalles.stream()
@@ -171,7 +171,7 @@ public class OrdenCompraService {
 
         // Crear un detalle por cada relación ArticuloProveedor para el artículo
         List<DetalleOrdenCompra> detalles = new ArrayList<>();
-        for (ArticuloProveedor ap : articulo.getRelacionesConProveedores()) {
+        ArticuloProveedor ap = articulo.getRelacionesConProveedores();
             BigDecimal subtotal = ap.getPrecioUnitario()
                     .add(ap.getCargosPedido())
                     .multiply(BigDecimal.valueOf(cantidad));
@@ -180,7 +180,7 @@ public class OrdenCompraService {
                     .articuloProveedor(ap)
                     .subTotal(subtotal)
                     .build());
-        }
+
 
         // Calcular monto total
         BigDecimal montoTotal = detalles.stream()
