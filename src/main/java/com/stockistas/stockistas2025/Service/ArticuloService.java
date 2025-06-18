@@ -207,6 +207,8 @@ public class ArticuloService {
                 .urlImagen(articulo.getUrlImagen())
                 .modeloInventario(articulo.getModeloInventario())
                 .proveedorPredeterminado(articulo.getProveedorPredeterminado())
+                .desviacionEstandar(articulo.getDesviacionEstandar())
+                .nivelServicio(articulo.getNivelServicio())
                 .build();
     }
 
