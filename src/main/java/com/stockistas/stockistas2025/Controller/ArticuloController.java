@@ -129,4 +129,5 @@ public class ArticuloController {
         return ResponseEntity.ok(articulosDTO);
     }
 
+
 }

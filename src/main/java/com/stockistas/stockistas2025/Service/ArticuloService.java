@@ -28,6 +28,9 @@ public class ArticuloService {
     private final OrdenCompraRepository ordenCompraRepository;
     private final ArticuloProveedorRepository articuloProveedorRepository;
 
+
+
+
     //-----------------------------------------------------------------------------------------------
     //Creación del artículo
     public Articulo crearArticulo(ArticuloDTO dto) {
@@ -184,7 +187,8 @@ public class ArticuloService {
         if (articulo == null) return null;
         ArticuloProveedor ap = articulo.getRelacionesConProveedores();
 
-        BigDecimal precioUnitario = ap != null ? ap.getPrecioUnitario() : BigDecimal.ZERO;
+        BigDecimal costoCompra = ap != null ? ap.getPrecioUnitario() : BigDecimal.ZERO;
+        BigDecimal costoPedido = ap != null ? ap.getCargosPedido() : BigDecimal.ZERO;
 
         return ArticuloDTO.builder()
                 .codArticulo(articulo.getCodArticulo())
@@ -192,8 +196,8 @@ public class ArticuloService {
                 .descripArt(articulo.getDescripArt())
                 .demandaAnual(articulo.getDemandaAnual())
                 .costoAlmacenamiento(articulo.getCostoAlmacenamiento())
-                .costoPedido(ap.getCargosPedido())
-                .costoCompra(precioUnitario)
+                .costoPedido(costoPedido)
+                .costoCompra(costoCompra)
                 .stockActual(articulo.getStockActual())
                 .CGI(articulo.getCGI())
                 .loteOptimo(articulo.getLoteOptimo())
