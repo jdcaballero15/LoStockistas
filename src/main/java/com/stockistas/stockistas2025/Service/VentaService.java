@@ -18,6 +18,7 @@ import java.util.List;
 public class VentaService {
 
     private final ArticuloRepository articuloRepository;
+    private final ArticuloService articuloService;
     private final VentaRepository ventaRepository;
     private final OrdenCompraService ordenCompraService;
 
@@ -51,8 +52,10 @@ public class VentaService {
         Venta ventaGuardada = ventaRepository.save(venta);
 
         // Actualizar el stock del artículo
-        articulo.setStockActual(stockActual - dto.getCantidadVendida());
-        articuloRepository.save(articulo);
+
+        //articulo.setStockActual(stockActual - dto.getCantidadVendida());
+        //articuloRepository.save(articulo);
+        articuloService.actualizarStock(articulo,-dto.getCantidadVendida());
 
         // Verificar si sedebe generar una Orden de Compra automática
         ordenCompraService.generarOrdenCompraSiCorresponde(articulo.getCodArticulo());

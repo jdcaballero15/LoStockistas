@@ -184,6 +184,13 @@ public class ArticuloService {
     }
 
     //-----------------------------------------------------------------------------------------------
+    public void actualizarStock(Articulo articulo, Integer cantidad){
+
+        articulo.setStockActual(articulo.getStockActual()+cantidad);
+        articuloRepository.save(articulo);
+    }
+
+    //-----------------------------------------------------------------------------------------------
     //Conversión del articulo encontrado a DTO para devolverlo al front
     public ArticuloDTO toDTO(Articulo articulo) {
         if (articulo == null) return null;

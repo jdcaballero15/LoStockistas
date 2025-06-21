@@ -17,6 +17,7 @@ import java.util.Optional;
 public class OrdenCompraService {
 
     private final ArticuloRepository articuloRepository;
+    private final ArticuloService articuloService;
     private final ProveedorRepository proveedorRepository;
     private final OrdenCompraRepository ordenCompraRepository;
     private final EstadoOCRepository estadoOCRepository;
@@ -32,14 +33,10 @@ public class OrdenCompraService {
         Articulo articulo = articuloRepository.findById(codArticulo)
                 .orElseThrow(() -> new EntityNotFoundException("Artículo no encontrado"));
 
-        System.out.println("ENCONTRO A:"+articulo.getNombreArt());
-        System.out.println("SU PROVEEDOR PRED ES: "+articulo.getProveedorPredeterminado().getCodProveedor());
         // Obtener relación Artículo-Proveedor predeterminado
         ArticuloProveedor relacion = articuloProveedorRepository
                 .findByArticuloAndProveedor(articulo, articulo.getProveedorPredeterminado())
                 .orElseThrow(() -> new RuntimeException("No existe relación válida con proveedor predeterminado"));
-        System.out.println("SE ENCONTRÓ ARTICULOPROVEEDOR");
-
 
         // Verificar si ya existe una OC con ese Articulo en estado Pendiente (1) o Enviada (2)
         List<OrdenCompra> ordenesRelacionadas = ordenCompraRepository
@@ -238,8 +235,14 @@ public class OrdenCompraService {
         oc.setEstado(estadoFinalizada);
         ordenCompraRepository.save(oc);
         for (DetalleOrdenCompra detalle : oc.getDetalles()) {
-            detalle.getArticuloProveedor().getArticulo().setStockActual(detalle.getArticuloProveedor().getArticulo().getStockActual() + oc.getCantArt());
-            articuloRepository.save(detalle.getArticuloProveedor().getArticulo());
+
+            Articulo articulo = detalle.getArticuloProveedor().getArticulo();
+
+            articuloService.actualizarStock(articulo,oc.getCantArt());
+
+            //detalle.getArticuloProveedor().getArticulo().setStockActual(detalle.getArticuloProveedor().getArticulo().getStockActual() + oc.getCantArt());
+
+            //articuloRepository.save(detalle.getArticuloProveedor().getArticulo());
         }
     }
 
