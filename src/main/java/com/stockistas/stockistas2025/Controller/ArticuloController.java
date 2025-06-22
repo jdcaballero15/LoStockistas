@@ -4,9 +4,7 @@ import com.stockistas.stockistas2025.Dto.ArticuloDTO;
 import com.stockistas.stockistas2025.Entity.Articulo;
 import com.stockistas.stockistas2025.Entity.ModeloInventario;
 import com.stockistas.stockistas2025.Entity.Proveedor;
-import com.stockistas.stockistas2025.Repository.ArticuloProveedorRepository;
 import com.stockistas.stockistas2025.Repository.ArticuloRepository;
-import com.stockistas.stockistas2025.Repository.ProveedorRepository;
 import com.stockistas.stockistas2025.Service.ArticuloService;
 import com.stockistas.stockistas2025.Service.ImagenService;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +46,14 @@ public class ArticuloController {
     @GetMapping("/stock-critico")
     public ResponseEntity<List<ArticuloDTO>> obtenerArticulosConStockCritico() {
         return ResponseEntity.ok(articuloService.obtenerArticulosCriticos());
+    }
+
+    //-----------------------------------------------------------------------------------------------
+    //Devuelve los articulos cuyo stocj esta igual o por debajo del punto pedido
+    @GetMapping("/punto-pedido")
+    public ResponseEntity<List<ArticuloDTO>> obtenerArticulosEnPuntoPedido() {
+        List<ArticuloDTO> articulos = articuloService.obtenerArticulosPuntoPedido();
+        return ResponseEntity.ok(articulos);
     }
 
     //-----------------------------------------------------------------------------------------------

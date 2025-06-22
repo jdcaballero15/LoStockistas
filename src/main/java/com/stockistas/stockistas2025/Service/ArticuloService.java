@@ -154,9 +154,18 @@ public class ArticuloService {
         Optional<ArticuloProveedor> ap = articuloProveedorRepository.findByArticuloAndProveedor(a, proveedor);
 
         //  costoCompra + costoPedido + costoAlmacenamiento
-        return ap.get().getCargosPedido()
-                .add(ap.get().getPrecioUnitario())
-                .add(a.getCostoAlmacenamiento());
+        BigDecimal D = BigDecimal.valueOf(a.getDemandaAnual());
+        BigDecimal C = ap.get().getPrecioUnitario();
+        BigDecimal Q = BigDecimal.valueOf(a.getLoteOptimo());
+        BigDecimal S = ap.get().getCargosPedido();
+        BigDecimal H = a.getCostoAlmacenamiento();
+
+        BigDecimal cgi =
+                D.multiply(C)
+                        .add(D.divide(Q, 10, RoundingMode.HALF_UP).multiply(S))
+                        .add(Q.divide(BigDecimal.valueOf(2), 10, RoundingMode.HALF_UP).multiply(H));
+
+        return cgi;
     }
 
     //-----------------------------------------------------------------------------------------------
@@ -284,6 +293,17 @@ public class ArticuloService {
                 .filter(a -> a.getFechaHoraBajaArticulo() == null) // Activo
                 .filter(a -> a.getStockActual() <= a.getStockSeguridad())
                 .map(this::toDTO) // Mapeo los datos en su DTO
+                .toList();
+    }
+
+    //-----------------------------------------------------------------------------------------------
+    //Obtener la lista de articulos que hayan alcanzado el punto de pedido y no tengan ordenes en estado (PENDIENTE O ENVIADA)
+    public List<ArticuloDTO> obtenerArticulosPuntoPedido(){
+        List<Articulo> todosPuntoPedido = articuloRepository.findArticulosConOrdenesQueNoEstanPendientesNiEnviadas();
+
+        return todosPuntoPedido.stream()
+                .filter(a -> a.getStockActual()<=a.getPuntoPedido())
+                .map(this::toDTO)// Mapeo los datos en su DTO
                 .toList();
     }
 
