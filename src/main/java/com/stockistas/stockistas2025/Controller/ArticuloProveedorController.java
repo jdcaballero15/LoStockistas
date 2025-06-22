@@ -50,10 +50,10 @@ public class ArticuloProveedorController {
 
     //-----------------------------------------------------------------------------------------------
     @GetMapping("/articulo/{codArticulo}")
-    public ResponseEntity<List<ArticuloProveedor>> obtenerPorArticulo(@PathVariable Integer codArticulo) {
+    public ResponseEntity<List<ArticuloProveedorDTO>> obtenerPorArticulo(@PathVariable Integer codArticulo) {
         return articuloRepository.findById(codArticulo)
                 .map(articulo -> {
-                    List<ArticuloProveedor> relaciones = service.obtenerPorArticulo(articulo);
+                    List<ArticuloProveedorDTO> relaciones = service.obtenerPorArticulo(articulo);
                     return ResponseEntity.ok(relaciones);
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());

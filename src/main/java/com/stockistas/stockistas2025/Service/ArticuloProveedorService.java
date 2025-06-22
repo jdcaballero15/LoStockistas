@@ -1,6 +1,7 @@
 package com.stockistas.stockistas2025.Service;
 
 import com.stockistas.stockistas2025.Dto.ArticuloProveedorDTO;
+import com.stockistas.stockistas2025.Dto.ProveedorDTOOutput;
 import com.stockistas.stockistas2025.Entity.Articulo;
 import com.stockistas.stockistas2025.Entity.ArticuloProveedor;
 import com.stockistas.stockistas2025.Entity.Proveedor;
@@ -10,6 +11,7 @@ import com.stockistas.stockistas2025.Repository.ProveedorRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -64,7 +66,30 @@ public class ArticuloProveedorService {
 
     //-----------------------------------------------------------------------------------------------
 
-    public List<ArticuloProveedor> obtenerPorArticulo(Articulo articulo) {
-        return articuloProveedorRepo.findByArticulo(articulo);
+    public List<ArticuloProveedorDTO> obtenerPorArticulo(Articulo articulo) {
+        List<ArticuloProveedor> relaciones = articuloProveedorRepo.findByArticulo(articulo);
+
+        return relaciones.stream()
+                .map(ap -> {
+                    ArticuloProveedorDTO dto = new ArticuloProveedorDTO();
+                    dto.setCodArticulo(ap.getArticulo().getCodArticulo());
+                    dto.setPrecioUnitario(ap.getPrecioUnitario());
+                    dto.setCargosPedido(ap.getCargosPedido());
+                    dto.setDemoraEntregaDias(ap.getDemoraEntrega());
+
+                    Proveedor proveedor = ap.getProveedor();
+                    ProveedorDTOOutput proveedorDTO = ProveedorDTOOutput.builder()
+                            .codProveedor(proveedor.getCodProveedor())
+                            .nombreProveedor(proveedor.getNombreProveedor())
+                            .emailProveedor(proveedor.getEmailProveedor())
+                            .telefonoProveedor(proveedor.getTelefonoProveedor())
+                            .direccionProveedor(proveedor.getDireccionProveedor())
+                            .build();
+
+                    dto.setProveedorDTOOutput(proveedorDTO);
+                    return dto;
+                })
+                .toList();
     }
+
 }
