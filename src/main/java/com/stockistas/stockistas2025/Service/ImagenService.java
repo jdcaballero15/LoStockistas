@@ -13,18 +13,20 @@ public class ImagenService {
 
     private final Cloudinary cloudinary;
 
-    // inyecta el bean de Cloudinary (tal como lo tenés en tu CloudinaryConfig)
+    //-----------------------------------------------------------------------------------------------
+    // Inyecto el bean de Cloudinary
     public ImagenService(Cloudinary cloudinary) {
         this.cloudinary = cloudinary;
     }
 
-    /**
-     * Sube el MultipartFile a Cloudinary y devuelve la URL pública.
-     */
+    //-----------------------------------------------------------------------------------------------
+    //Sube el MultipartFile a Cloudinary y devuelve la URL pública.
     public String subirImagen(MultipartFile archivo) throws IOException {
-        // convierte a bytes y sube
+        //Convierte a bytes y sube
         Map<?, ?> resultado = cloudinary.uploader()
                 .upload(archivo.getBytes(), ObjectUtils.emptyMap());
         return resultado.get("secure_url").toString();
     }
+
+    //-----------------------------------------------------------------------------------------------
 }

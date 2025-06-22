@@ -6,7 +6,6 @@ import com.stockistas.stockistas2025.Entity.ArticuloProveedor;
 import com.stockistas.stockistas2025.Entity.ModeloInventario;
 import com.stockistas.stockistas2025.Entity.Proveedor;
 import com.stockistas.stockistas2025.Repository.*;
-import io.swagger.models.Model;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,12 +23,8 @@ import java.util.Optional;
 public class ArticuloService {
 
     private final ArticuloRepository articuloRepository;
-    private final ProveedorRepository proveedorRepository;
     private final OrdenCompraRepository ordenCompraRepository;
     private final ArticuloProveedorRepository articuloProveedorRepository;
-
-
-
 
     //-----------------------------------------------------------------------------------------------
     //Creación del artículo
@@ -41,17 +36,10 @@ public class ArticuloService {
                 .nombreArt(dto.getNombreArt())
                 .descripArt(dto.getDescripArt())
                 .demandaAnual(dto.getDemandaAnual())
-                //.costoAlmacenamiento(dto.getCostoAlmacenamiento())
-                //.costoPedido(dto.getCostoPedido())
-                //.costoCompra(dto.getCostoCompra())
                 .stockActual(dto.getStockActual())
                 .fechaHoraBajaArticulo(null)
-                //.CGI(CGI)
                 .modeloInventario(dto.getModeloInventario())
-                //.proveedorPredeterminado(proveedor)
-                //.loteOptimo(dto.getLoteOptimo())
                 .inventarioMax(dto.getInventarioMax())
-                //.puntoPedido(dto.getPuntoPedido())
                 .stockSeguridad(calcularStockSeguridad(dto.getNivelServicio(),dto.getDesviacionEstandar()))
                 .nivelServicio(dto.getNivelServicio()/100)
                 .desviacionEstandar(dto.getDesviacionEstandar())
@@ -60,8 +48,8 @@ public class ArticuloService {
         return articuloRepository.save(articulo);
     }
 
-
     //-----------------------------------------------------------------------------------------------
+    //Cálculo del stock de seguridad
     public Integer calcularStockSeguridad(Double nivelServicio, Double desviacionEstandar){
         if (nivelServicio == null || desviacionEstandar == null) {
             throw new IllegalArgumentException("Nivel de servicio y desviación estándar no pueden ser nulos.");
@@ -82,6 +70,7 @@ public class ArticuloService {
 
         return (int) Math.ceil(stockSeguridad); // siempre redondeamos hacia arriba
     }
+
     //-----------------------------------------------------------------------------------------------
     // Cálculo del Punto de Pedido
     public Integer calcularPuntoPedido(Articulo a, Proveedor proveedor) {
@@ -131,11 +120,11 @@ public class ArticuloService {
             throw new IllegalArgumentException("Lote óptimo no puede ser cero o nulo");
         }
 
-        // (demandaAnual / loteOptimo) * cargosPedido
         BigDecimal demandaAnual = BigDecimal.valueOf(a.getDemandaAnual());
         BigDecimal loteOptimo = BigDecimal.valueOf(a.getLoteOptimo());
         BigDecimal cargosPedido = ap.getCargosPedido();
 
+        // (demandaAnual / loteOptimo) * cargosPedido
         return demandaAnual.divide(loteOptimo, 6, RoundingMode.HALF_UP).multiply(cargosPedido);
     }
 
@@ -149,12 +138,12 @@ public class ArticuloService {
             throw new IllegalArgumentException("Lote óptimo no puede ser nulo");
         }
 
-        // (loteOptimo / 2) * (i * precioUnitario)
         BigDecimal loteOptimo = BigDecimal.valueOf(a.getLoteOptimo());
         BigDecimal i = a.getI();
         BigDecimal precioUnitario = ap.getPrecioUnitario();
-
         BigDecimal factor = i.multiply(precioUnitario);
+
+        // (loteOptimo / 2) * (i * precioUnitario)
         return loteOptimo.divide(BigDecimal.valueOf(2), 6, RoundingMode.HALF_UP).multiply(factor);
     }
 
@@ -164,26 +153,24 @@ public class ArticuloService {
 
         Optional<ArticuloProveedor> ap = articuloProveedorRepository.findByArticuloAndProveedor(a, proveedor);
 
-        /*if (a.getCostoCompra() == null || a.getCostoPedido() == null || a.getCostoAlmacenamiento() == null) {
-            throw new IllegalArgumentException("Los costos deben estar calculados para poder calcular CGI");
-        }*/
-
         //  costoCompra + costoPedido + costoAlmacenamiento
-        BigDecimal demandaAnual = BigDecimal.valueOf(a.getDemandaAnual());
-
         return ap.get().getCargosPedido()
                 .add(ap.get().getPrecioUnitario())
                 .add(a.getCostoAlmacenamiento());
     }
-    //Lista todos los articulos que aun no se han dado de baja y los devuelve como un DTO con la informacion necesaria
 
     //-----------------------------------------------------------------------------------------------
-    //Mostrar todos los articulos
+    //Lista todos los articulos que aun no se han dado de baja
     public List<ArticuloDTO> getAll() {
-        return articuloRepository.findAll().stream().filter(a->a.getFechaHoraBajaArticulo()==null).map(this::toDTO).toList();
+        return articuloRepository.findAll().
+                stream()
+                .filter(a->a.getFechaHoraBajaArticulo()==null)
+                .map(this::toDTO)
+                .toList();
     }
 
     //-----------------------------------------------------------------------------------------------
+    //Ajuste de la cantidad de artículos
     public void actualizarStock(Articulo articulo, Integer cantidad){
 
         articulo.setStockActual(articulo.getStockActual()+cantidad);
@@ -240,15 +227,16 @@ public class ArticuloService {
         existente.setProveedorPredeterminado(dto.getProveedorPredeterminado());
         existente.setNivelServicio(dto.getNivelServicio()/100);
         existente.setDesviacionEstandar(dto.getDesviacionEstandar());
+
+        //Si al modificar asignamos un proveedor se hacen los cálculos correspondientes
         if (dto.getProveedorPredeterminado() != null) {
+            //Si el proveedor tiene intervalo de reposición y nosotros lo utilizabamos con otro modelo de inventario lo modificamos
             if(dto.getProveedorPredeterminado().getIntervaloReposicion() != null && existente.getModeloInventario() == ModeloInventario.LOTEFIJO){
                 existente.setModeloInventario(ModeloInventario.INTERVALOFIJO);
             }
             existente.setProveedorPredeterminado(dto.getProveedorPredeterminado());
             existente.setPuntoPedido(calcularPuntoPedido(existente, dto.getProveedorPredeterminado()));
-            //existente.setCostoCompra(calcularCostoCompra(existente, dto.getProveedorPredeterminado()));
             existente.setLoteOptimo(calcularLoteOptimo(existente, dto.getProveedorPredeterminado()));
-            //existente.setCostoPedido(calcularCostoPedido(existente, dto.getProveedorPredeterminado()));
             existente.setCostoAlmacenamiento(calcularCostoAlmacenamiento(existente, dto.getProveedorPredeterminado()));
             existente.setCGI(calcularCGI(existente,dto.getProveedorPredeterminado()));
         }
@@ -265,7 +253,7 @@ public class ArticuloService {
 
         //Verificamos si tiene stock
         if (articulo.getStockActual() != null && articulo.getStockActual() > 0) {
-            throw new IllegalStateException("No se puede dar de baja: el artículo tiene unidades en stock.");
+            throw new IllegalStateException("No se puede dar de baja: El artículo tiene unidades en stock.");
         }
 
         ArticuloProveedor ap = articulo.getRelacionesConProveedores();
@@ -281,7 +269,7 @@ public class ArticuloService {
             throw new IllegalStateException("No se puede dar de baja: el artículo tiene órdenes de compra pendientes o enviadas.");
         }
 
-        //Se le da baja logica al articulo
+        //Se le da baja lógica al articulo
         articulo.setFechaHoraBajaArticulo(LocalDateTime.now());
         articuloRepository.save(articulo);
     }
@@ -293,12 +281,14 @@ public class ArticuloService {
 
         return todos.stream()
                 .filter(a -> a.getStockSeguridad() != null)
-                .filter(a -> a.getFechaHoraBajaArticulo() == null) // activo
+                .filter(a -> a.getFechaHoraBajaArticulo() == null) // Activo
                 .filter(a -> a.getStockActual() <= a.getStockSeguridad())
-                .map(this::toDTO) // llamás al método de mapeo
+                .map(this::toDTO) // Mapeo los datos en su DTO
                 .toList();
     }
 
+    //-----------------------------------------------------------------------------------------------
+    //Busco proveedores por artículo (se utiliza para seleccionar el proveedor predeterminado filtrando solo aquellos que tengan este tipo de artículo)
     public List<Proveedor> getProveedoresByArticulo(Integer articuloId) {
         Articulo articulo = articuloRepository.findById(articuloId)
                 .orElseThrow(() -> new EntityNotFoundException("Artículo no encontrado"));
@@ -313,26 +303,25 @@ public class ArticuloService {
                 .toList();
     }
 
-    //metodo para crearArticulo pero con una foto
+    //-----------------------------------------------------------------------------------------------
+    //Crea el artículo con una foto
     public Articulo crearArticuloConImagen(ArticuloDTO dto) {
-        Articulo art = Articulo.builder()
+        Articulo articulo = Articulo.builder()
                 .nombreArt(dto.getNombreArt())
                 .descripArt(dto.getDescripArt())
                 .demandaAnual(dto.getDemandaAnual())
                 .stockActual(dto.getStockActual())
                 .fechaHoraBajaArticulo(null)
                 .modeloInventario(dto.getModeloInventario())
-             //   .proveedorPredeterminado(dto.getProveedorPredeterminado())
                 .inventarioMax(dto.getInventarioMax())
                 .stockSeguridad(dto.getStockSeguridad())
                 .nivelServicio(dto.getNivelServicio())
                 .desviacionEstandar(dto.getDesviacionEstandar())
-                .urlImagen(dto.getUrlImagen())    // ← Asegúrate de que Articulo tenga este campo
+                .urlImagen(dto.getUrlImagen())
                 .build();
 
-        return articuloRepository.save(art);
+        return articuloRepository.save(articulo);
     }
 
-
-
+    //-----------------------------------------------------------------------------------------------
 }

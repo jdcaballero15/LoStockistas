@@ -17,6 +17,8 @@ public class ArticuloProveedorController {
 
     private final ArticuloProveedorService service;
 
+    //-----------------------------------------------------------------------------------------------
+    // Crea una relación entre un artículo y un proveedor, a partir del DTO recibido
     @PostMapping("/{codProveedor}")
     public ResponseEntity<ArticuloProveedor> crearRelacion(
             @PathVariable Integer codProveedor,
@@ -26,6 +28,8 @@ public class ArticuloProveedorController {
         return ResponseEntity.ok(ap);
     }
 
+    //-----------------------------------------------------------------------------------------------
+    // Elimina la relación entre un artículo y un proveedor específico
     @DeleteMapping("/{codProveedor}/{codArticulo}")
     public ResponseEntity<Void> eliminarRelacion(
             @PathVariable Integer codProveedor,
@@ -35,11 +39,12 @@ public class ArticuloProveedorController {
         return ResponseEntity.ok(null);
     }
 
-
-
+    //-----------------------------------------------------------------------------------------------
+    // Obtiene todas las relaciones entre artículos y proveedores existentes
     @GetMapping
     public ResponseEntity<List<ArticuloProveedor>> obtenerTodos() {
         return ResponseEntity.ok(service.obtenerTodos());
     }
-}
 
+    //-----------------------------------------------------------------------------------------------
+}

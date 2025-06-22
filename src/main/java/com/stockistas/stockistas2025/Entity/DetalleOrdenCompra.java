@@ -20,11 +20,6 @@ public class DetalleOrdenCompra {
 
     private BigDecimal subTotal;
 
-    /*@ManyToOne
-    @JoinColumn(name = "orden_compra_id", nullable = false)
-    @JsonBackReference
-    private OrdenCompra ordenCompra;*/
-
     @ManyToOne
     @JoinColumn(name = "articulo_proveedor_id", nullable = false)
     private ArticuloProveedor articuloProveedor;

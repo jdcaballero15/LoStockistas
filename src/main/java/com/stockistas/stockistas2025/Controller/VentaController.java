@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/ventas")
@@ -18,17 +19,20 @@ public class VentaController {
 
     private final VentaService ventaService;
 
-
+    //-----------------------------------------------------------------------------------------------
+    // Registra una nueva venta para un artículo determinado, actualiza el stock y verifica condiciones
     @PostMapping("/ventas")
     public ResponseEntity<?> registrarVenta(@RequestBody VentaDTO dto) {
         try {
             Venta venta = ventaService.registrarVenta(dto);
             return ResponseEntity.ok(venta);
         } catch (EntityNotFoundException | IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("❌ " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
+    //-----------------------------------------------------------------------------------------------
+    // Devuelve todas las ventas asociadas a un artículo por su código
     @GetMapping("/articulo/{codArticulo}")
     public ResponseEntity<?> listarVentasPorArticulo(@PathVariable Integer codArticulo) {
         try {
@@ -36,8 +40,9 @@ public class VentaController {
             return ResponseEntity.ok(ventas);
         } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("❌ " + e.getMessage());
+                    .body(e.getMessage());
         }
     }
 
+    //-----------------------------------------------------------------------------------------------
 }

@@ -22,22 +22,19 @@ public class VentaService {
     private final VentaRepository ventaRepository;
     private final OrdenCompraService ordenCompraService;
 
-    /**
-     * Registra una venta y reduce el stock del artículo.
-     * Verifica que no se venda más stock del disponible.
-     * Luego llama a la lógica de generación automática de OC si aplica.
-     */
+    //-----------------------------------------------------------------------------------------------
+    //Registro la venta y llamo a la función para actualizar stock
     public Venta registrarVenta(VentaDTO dto) {
-        // Buscar el artículo por ID
 
         Articulo articulo = articuloRepository.findById(dto.getCodArticulo())
                 .orElseThrow(() -> new EntityNotFoundException("Artículo con ID " + dto.getCodArticulo() + " no encontrado"));
 
-        // Verificar stock disponible
+        // Verificar que se ingreso una cantidad
         int stockActual = articulo.getStockActual();
         if (dto.getCantidadVendida() == null || dto.getCantidadVendida() <= 0) {
             throw new IllegalArgumentException("La cantidad vendida debe ser mayor que cero.");
         }
+        //Verificar que no se venda más del stock disponible
         if (dto.getCantidadVendida() > stockActual) {
             throw new IllegalArgumentException("Stock insuficiente para la venta");
         }
@@ -52,26 +49,23 @@ public class VentaService {
         Venta ventaGuardada = ventaRepository.save(venta);
 
         // Actualizar el stock del artículo
-
-        //articulo.setStockActual(stockActual - dto.getCantidadVendida());
-        //articuloRepository.save(articulo);
         articuloService.actualizarStock(articulo,-dto.getCantidadVendida());
 
-        // Verificar si sedebe generar una Orden de Compra automática
+        // Verificar si se debe generar una Orden de Compra automática
         ordenCompraService.generarOrdenCompraSiCorresponde(articulo.getCodArticulo());
 
         return ventaGuardada;
     }
 
-
-    /**
-     * Lista todas las ventas realizadas para un artículo dado.
-     */
+    //-----------------------------------------------------------------------------------------------
+    //Lista todas las ventas realizadas para un artículo dado.
     public List<Venta> listarVentasPorArticulo(Integer codArticulo) {
+
         Articulo articulo = articuloRepository.findById(codArticulo)
                 .orElseThrow(() -> new EntityNotFoundException("Artículo no encontrado"));
 
         return ventaRepository.findByArticulo(articulo);
     }
 
+    //-----------------------------------------------------------------------------------------------
 }

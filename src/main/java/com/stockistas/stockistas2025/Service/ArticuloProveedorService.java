@@ -20,7 +20,10 @@ public class ArticuloProveedorService {
     private final ArticuloRepository articuloRepo;
     private final ProveedorRepository proveedorRepo;
 
+    //-----------------------------------------------------------------------------------------------
+    //Genero la relación entre los aticulos que vende el proveedor y los de nuestro sistema (clase intermedia)
     public ArticuloProveedor agregarRelacion(ArticuloProveedorDTO dto, Integer codProveedor) {
+
         Articulo articulo = articuloRepo.findById(dto.getCodArticulo())
                 .orElseThrow(() -> new IllegalArgumentException("Artículo no encontrado"));
 
@@ -37,11 +40,15 @@ public class ArticuloProveedorService {
 
         return articuloProveedorRepo.save(ap);
     }
+
+    //-----------------------------------------------------------------------------------------------
+    //Lista de todos los artículos (clase intermedia)
     public List<ArticuloProveedor> obtenerTodos() {
         return articuloProveedorRepo.findAll();
     }
 
-
+    //-----------------------------------------------------------------------------------------------
+    //El proveedor ya no tiene disponible este artículo
     public void eliminarRelacion(Integer codProveedor, Integer codArticulo) {
         Articulo articulo = articuloRepo.findById(codArticulo)
                 .orElseThrow(() -> new IllegalArgumentException("Artículo no encontrado"));
@@ -55,4 +62,5 @@ public class ArticuloProveedorService {
         articuloProveedorRepo.delete(relacion);
     }
 
+    //-----------------------------------------------------------------------------------------------
 }

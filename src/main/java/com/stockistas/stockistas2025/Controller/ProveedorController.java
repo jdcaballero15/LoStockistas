@@ -21,6 +21,8 @@ public class ProveedorController {
 
     private final ProveedorService proveedorService;
 
+    //-----------------------------------------------------------------------------------------------
+    // Crea un nuevo proveedor con los datos proporcionados
     @PostMapping
     public ResponseEntity<?> crearProveedor(@RequestBody ProveedorDTO dto) {
         try {
@@ -31,35 +33,40 @@ public class ProveedorController {
         }
     }
 
+    //-----------------------------------------------------------------------------------------------
+    // Elimina un proveedor por ID, validando que no tenga artículos asociados
     @DeleteMapping("/{id}")
     public ResponseEntity<?> eliminarProveedor(@PathVariable("id") Integer id) {
         try {
             proveedorService.bajaProveedor(id);
-            return ResponseEntity.ok("✅ Proveedor eliminado correctamente.");
+            return ResponseEntity.ok("Proveedor eliminado correctamente.");
         } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("❌ " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("⚠️ " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("⛔ Error inesperado: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error inesperado: " + e.getMessage());
         }
     }
 
+    //-----------------------------------------------------------------------------------------------
+    // Devuelve todos los proveedores activos en formato DTO de salida
     @GetMapping
     public ResponseEntity<List<ProveedorDTOOutput>> getAll() {
-
         return ResponseEntity.ok(proveedorService.getAll());
     }
 
-
+    //-----------------------------------------------------------------------------------------------
+    // Devuelve todos los artículos asociados a un proveedor específico por su ID
     @GetMapping("/{id}/articulos")
     public ResponseEntity<?> listarArticulosDelProveedor(@PathVariable("id") Integer id) {
         try {
             List<ArticuloProveedorResponseDTO> articulos = proveedorService.listarArticulosPorProveedor(id);
             return ResponseEntity.ok(articulos);
         } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("❌ " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
+    //-----------------------------------------------------------------------------------------------
 }

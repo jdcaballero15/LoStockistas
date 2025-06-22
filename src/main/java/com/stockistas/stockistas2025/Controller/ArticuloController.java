@@ -9,16 +9,13 @@ import com.stockistas.stockistas2025.Repository.ArticuloRepository;
 import com.stockistas.stockistas2025.Repository.ProveedorRepository;
 import com.stockistas.stockistas2025.Service.ArticuloService;
 import com.stockistas.stockistas2025.Service.ImagenService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,31 +27,38 @@ public class ArticuloController {
 
     private final ArticuloService articuloService;
     private final ImagenService imagenService;
-    private final ProveedorRepository proveedorRepository;
-    private final ArticuloProveedorRepository articuloProveedorRepository;
     private final ArticuloRepository articuloRepository;
 
+    //-----------------------------------------------------------------------------------------------
+    // Devuelve todos los artículos existentes
     @GetMapping
     public ResponseEntity<List<ArticuloDTO>> getAll() {
         return ResponseEntity.ok(articuloService.getAll());
     }
 
+    //-----------------------------------------------------------------------------------------------
+    // Devuelve un artículo específico por su ID
     @GetMapping("/{id}")
     public ResponseEntity<Articulo> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(articuloService.getById(id));
     }
 
+    //-----------------------------------------------------------------------------------------------
+    // Devuelve los artículos cuyo stock está por debajo del nivel de seguridad
     @GetMapping("/stock-critico")
     public ResponseEntity<List<ArticuloDTO>> obtenerArticulosConStockCritico() {
         return ResponseEntity.ok(articuloService.obtenerArticulosCriticos());
     }
 
+    //-----------------------------------------------------------------------------------------------
+    // Crea un nuevo artículo a partir de los datos recibidos en el DTO
     @PostMapping
     public ResponseEntity<Articulo> create(@RequestBody ArticuloDTO dto) {
         return ResponseEntity.ok(articuloService.crearArticulo(dto));
     }
 
-    // —— Nuevo endpoint para subir imagen y crear el artículo en un solo paso ——
+    //-----------------------------------------------------------------------------------------------
+    // Crea un nuevo artículo con imagen cargada mediante formulario multipart
     @PostMapping(
             value = "/con-imagen",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
@@ -74,11 +78,7 @@ public class ArticuloController {
 
         // 1) Subo la imagen y obtengo la URL
         String urlImagen = imagenService.subirImagen(archivo);
-
-
-
-
-        // 3) Armo el DTO
+        // 2) Armo el DTO
         ArticuloDTO dto = ArticuloDTO.builder()
                 .nombreArt(nombreArt)
                 .descripArt(descripArt)
@@ -92,12 +92,13 @@ public class ArticuloController {
                 .urlImagen(urlImagen)
                 .build();
 
-        // 4) Delego la creación al servicio
+        // 3) Delego la creación al servicio
         Articulo creado = articuloService.crearArticuloConImagen(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }
 
-
+    //-----------------------------------------------------------------------------------------------
+    // Actualiza un artículo existente por ID
     @PutMapping("/{id}")
     public ResponseEntity<Articulo> update(
             @PathVariable Integer id,
@@ -106,19 +107,25 @@ public class ArticuloController {
         return ResponseEntity.ok(articuloService.update(id, dto));
     }
 
+    //-----------------------------------------------------------------------------------------------
+    // Elimina un artículo por su ID
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
         articuloService.delete(id);
         return ResponseEntity.noContent().build();
     }
 
+    //-----------------------------------------------------------------------------------------------
+    // Devuelve los proveedores asociados a un artículo específico
     @GetMapping("/{articuloId}/proveedores")
     public ResponseEntity<List<Proveedor>> getProveedoresByArticulo(@PathVariable Integer articuloId) {
 
         List<Proveedor> proveedores = articuloService.getProveedoresByArticulo(articuloId);
         return ResponseEntity.ok(proveedores);
     }
-    //USAR PARA EL FILTRO DE LOS ARTICULOS AL MOMENTO DE CREAR UNA ORDEN MANUAL
+
+    //-----------------------------------------------------------------------------------------------
+    //Devuelve artículos que tienen un proveedor predeterminado (para usar en creación manual de orden)
     @GetMapping("/con-proveedor")
     public ResponseEntity<List<ArticuloDTO>> getArticulosConProveedor() {
         List<Articulo> articulos = articuloRepository.findByProveedorPredeterminadoIsNotNull();
@@ -129,5 +136,5 @@ public class ArticuloController {
         return ResponseEntity.ok(articulosDTO);
     }
 
-
+    //-----------------------------------------------------------------------------------------------
 }

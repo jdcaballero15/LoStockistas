@@ -19,9 +19,12 @@ public class EstadoOCController {
 
     private final EstadoOCService estadoOCService;
 
-
+    //-----------------------------------------------------------------------------------------------
+    //Devuelve todos los estados
     @GetMapping("")
     public ResponseEntity<List<EstadoOC>> estadosOC(){
         return ResponseEntity.ok(estadoOCService.getAll());
     }
+
+    //-----------------------------------------------------------------------------------------------
 }

@@ -28,9 +28,10 @@ public class ProveedorService {
     private final ArticuloProveedorRepository articuloProveedorRepository;
     private final OrdenCompraRepository ordenCompraRepository;
 
-
-    // Alta de proveedor junto con sus artículos asociados.
+    //-----------------------------------------------------------------------------------------------
+    // Alta de proveedor junto con sus artículos asociados (Tiene un artículo como mínimo)
     public Proveedor altaProveedor(ProveedorDTO dto) {
+
         if (dto.getArticulos() == null || dto.getArticulos().isEmpty()) {
             throw new IllegalArgumentException("Debe asociarse al menos un artículo al proveedor.");
         }
@@ -63,9 +64,10 @@ public class ProveedorService {
         return proveedorGuardado;
     }
 
-
-    // Baja lógica del proveedor con validaciones.
+    //-----------------------------------------------------------------------------------------------
+    // Baja lógica del proveedor.
     public void bajaProveedor(Integer codProveedor) {
+
         Proveedor proveedor = proveedorRepository.findById(codProveedor)
                 .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado."));
 
@@ -79,12 +81,15 @@ public class ProveedorService {
         if (tieneOCActiva) {
             throw new IllegalStateException("No se puede eliminar: proveedor tiene órdenes de compra pendientes o enviadas.");
         }
+
         proveedor.setFechaHoraBajaProveedor(LocalDateTime.now());
         proveedorRepository.save(proveedor);
     }
 
-
+    //-----------------------------------------------------------------------------------------------
+    //Listo los artículos del proveedor y los guardo en un DTO para enviarlos al front
     public List<ArticuloProveedorResponseDTO> listarArticulosPorProveedor(Integer codProveedor) {
+
         Proveedor proveedor = proveedorRepository.findById(codProveedor)
                 .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado."));
 
@@ -102,6 +107,9 @@ public class ProveedorService {
                 })
                 .collect(Collectors.toList());
     }
+
+    //-----------------------------------------------------------------------------------------------
+    //Muestro todos los proveedores y los guardo en un DTO para enviarlos al front
     public List<ProveedorDTOOutput> getAll() {
         return proveedorRepository.findAll().stream()
                 .filter(p -> p.getFechaHoraBajaProveedor() == null)
@@ -114,4 +122,5 @@ public class ProveedorService {
                 .collect(Collectors.toList());
     }
 
+    //-----------------------------------------------------------------------------------------------
 }

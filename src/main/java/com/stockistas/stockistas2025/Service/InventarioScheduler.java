@@ -17,18 +17,23 @@ public class InventarioScheduler {
     private final ArticuloRepository articuloRepository;
     private final OrdenCompraService ordenCompraService;
 
-    public InventarioScheduler(ArticuloRepository articuloRepository,
-                               OrdenCompraService ordenCompraService) {
+    //-----------------------------------------------------------------------------------------------
+    //Constructor del demonio (INTERVALO FIJO)
+    public InventarioScheduler(ArticuloRepository articuloRepository,OrdenCompraService ordenCompraService) {
         this.articuloRepository = articuloRepository;
         this.ordenCompraService = ordenCompraService;
     }
 
+    //-----------------------------------------------------------------------------------------------
     // Se ejecuta cada 2min
-    @Scheduled(cron = "0 */2 * * * *") // cada 2 minutos
+    @Scheduled(cron = "0 */2 * * * *")
     public void verificarStockIntervaloFijo() {
+
+        //Busco todos los artículos con modelo intervalo fijo
         List<Articulo> articulos = articuloRepository.findByModeloInventario(ModeloInventario.INTERVALOFIJO);
 
         for (Articulo articulo : articulos) {
+            //Solo trabaja el demonio con los articulos que tienen proveedor predeterminado asignado
             if (articulo.getProveedorPredeterminado() == null) continue;
 
             Integer intervaloDias = articulo.getProveedorPredeterminado().getIntervaloReposicion();
@@ -45,4 +50,6 @@ public class InventarioScheduler {
             }
         }
     }
+
+    //-----------------------------------------------------------------------------------------------
 }

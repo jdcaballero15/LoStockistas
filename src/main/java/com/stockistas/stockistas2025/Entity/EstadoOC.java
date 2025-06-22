@@ -1,10 +1,7 @@
 package com.stockistas.stockistas2025.Entity;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.util.List;
 
 @Entity
 @Builder
@@ -18,7 +15,4 @@ public class EstadoOC {
     private Integer codEstadoOC;
     private String nombreEstadoOC;
 
-    //@OneToMany(mappedBy = "estado")
-    //@JsonBackReference
-    //private List<OrdenCompra> ordenes;
 }

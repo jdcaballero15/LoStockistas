@@ -1,13 +1,10 @@
 package com.stockistas.stockistas2025.Entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
+
 
 @Entity
 @Builder
@@ -35,7 +32,4 @@ public class ArticuloProveedor {
     @JsonBackReference  // No serializa para evitar recursión
     private Proveedor proveedor;
 
-    //@OneToMany(mappedBy = "articuloProveedor", cascade = CascadeType.ALL, orphanRemoval = true)
-    //@JsonBackReference
-    //private List<DetalleOrdenCompra> detallesOC;
 }
