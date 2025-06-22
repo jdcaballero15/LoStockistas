@@ -1,10 +1,7 @@
 package com.stockistas.stockistas2025.Service;
 
 import com.stockistas.stockistas2025.Dto.ArticuloDTO;
-import com.stockistas.stockistas2025.Entity.Articulo;
-import com.stockistas.stockistas2025.Entity.ArticuloProveedor;
-import com.stockistas.stockistas2025.Entity.ModeloInventario;
-import com.stockistas.stockistas2025.Entity.Proveedor;
+import com.stockistas.stockistas2025.Entity.*;
 import com.stockistas.stockistas2025.Repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +10,7 @@ import org.apache.commons.math3.distribution.NormalDistribution;
 
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import java.math.BigDecimal;
@@ -25,6 +23,7 @@ public class ArticuloService {
     private final ArticuloRepository articuloRepository;
     private final OrdenCompraRepository ordenCompraRepository;
     private final ArticuloProveedorRepository articuloProveedorRepository;
+    private final DetalleOrdenCompraRepository detalleOrdenCompraRepository;
 
     //-----------------------------------------------------------------------------------------------
     //Creación del artículo
@@ -298,15 +297,24 @@ public class ArticuloService {
 
     //-----------------------------------------------------------------------------------------------
     //Obtener la lista de articulos que hayan alcanzado el punto de pedido y no tengan ordenes en estado (PENDIENTE O ENVIADA)
-    public List<ArticuloDTO> obtenerArticulosPuntoPedido(){
-        List<Articulo> todosPuntoPedido = articuloRepository.findArticulosConOrdenesQueNoEstanPendientesNiEnviadas();
+    public List<ArticuloDTO> obtenerArticulosPuntoPedido() {
+        List<Articulo> todos = articuloRepository.findAll();
 
-        return todosPuntoPedido.stream()
-                .filter(a -> a.getStockActual()<=a.getPuntoPedido())
-                .map(this::toDTO)// Mapeo los datos en su DTO
+        List<Articulo> puntoPedido =  new ArrayList<>();
+
+        for (Articulo a : todos){
+            List<OrdenCompra> ordenesDelArticulo =ordenCompraRepository.findByDetalles_ArticuloProveedor_Articulo_CodArticulo(a.getCodArticulo());
+            for (OrdenCompra oc : ordenesDelArticulo){
+                if(oc.getEstado().getCodEstadoOC()!= 1 && oc.getEstado().getCodEstadoOC()!= 2){
+                    puntoPedido.add(a);
+                }
+            }
+        }
+        return puntoPedido.stream()
+                .filter(a -> a.getStockActual() <= a.getPuntoPedido())
+                .map(this::toDTO)
                 .toList();
     }
-
     //-----------------------------------------------------------------------------------------------
     //Busco proveedores por artículo (se utiliza para seleccionar el proveedor predeterminado filtrando solo aquellos que tengan este tipo de artículo)
     public List<Proveedor> getProveedoresByArticulo(Integer articuloId) {
