@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrdenCompraRepository extends JpaRepository<OrdenCompra, Integer> {
@@ -22,7 +23,7 @@ public interface OrdenCompraRepository extends JpaRepository<OrdenCompra, Intege
     //-----------------------------------------------------------------------------------------------
     // Verifica si existen órdenes de compra con un artículo-proveedor específico en alguno de los estados indicados
     boolean existsByDetalles_ArticuloProveedorAndEstado_CodEstadoOCIn(
-            ArticuloProveedor articuloProveedor,
+            Optional<ArticuloProveedor> articuloProveedor,
             List<Integer> codEstados);
 
     //-----------------------------------------------------------------------------------------------

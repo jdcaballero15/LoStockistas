@@ -63,13 +63,13 @@ public class OrdenCompraService {
 
         // Crear un detalle por cada relación ArticuloProveedor para el artículo (En principio seria solo 1, pero si se compran más artículos a ese proveedor el sistema esta preparado)
         List<DetalleOrdenCompra> detalles = new ArrayList<>();
-        ArticuloProveedor ap  = articulo.getRelacionesConProveedores();
-            BigDecimal subtotal = ap.getPrecioUnitario()
-                    .add(ap.getCargosPedido())
+        Optional<ArticuloProveedor> ap = articuloProveedorRepository.findByArticuloAndProveedor(articulo,articulo.getProveedorPredeterminado());
+            BigDecimal subtotal = ap.get().getPrecioUnitario()
+                    .add(ap.get().getCargosPedido())
                     .multiply(BigDecimal.valueOf(cantidadFaltante));
 
             detalles.add(DetalleOrdenCompra.builder()
-                    .articuloProveedor(ap)
+                    .articuloProveedor(ap.get())
                     .subTotal(subtotal)
                     .build());
 
@@ -176,13 +176,13 @@ public class OrdenCompraService {
 
         // Crear un detalle por cada relación ArticuloProveedor para el artículo
         List<DetalleOrdenCompra> detalles = new ArrayList<>();
-        ArticuloProveedor ap = articulo.getRelacionesConProveedores();
-            BigDecimal subtotal = ap.getPrecioUnitario()
-                    .add(ap.getCargosPedido())
+        Optional<ArticuloProveedor> ap = articuloProveedorRepository.findByArticuloAndProveedor(articulo,articulo.getProveedorPredeterminado());
+            BigDecimal subtotal = ap.get().getPrecioUnitario()
+                    .add(ap.get().getCargosPedido())
                     .multiply(BigDecimal.valueOf(cantidad));
 
             detalles.add(DetalleOrdenCompra.builder()
-                    .articuloProveedor(ap)
+                    .articuloProveedor(ap.get())
                     .subTotal(subtotal)
                     .build());
 

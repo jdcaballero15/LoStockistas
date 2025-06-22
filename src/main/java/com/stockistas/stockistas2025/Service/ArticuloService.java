@@ -189,10 +189,10 @@ public class ArticuloService {
     //Conversión del articulo encontrado a DTO para devolverlo al front
     public ArticuloDTO toDTO(Articulo articulo) {
         if (articulo == null) return null;
-        ArticuloProveedor ap = articulo.getRelacionesConProveedores();
+        Optional<ArticuloProveedor> ap = articuloProveedorRepository.findByArticuloAndProveedor(articulo,articulo.getProveedorPredeterminado());
 
-        BigDecimal costoCompra = ap != null ? ap.getPrecioUnitario() : BigDecimal.ZERO;
-        BigDecimal costoPedido = ap != null ? ap.getCargosPedido() : BigDecimal.ZERO;
+        BigDecimal costoCompra = ap.isPresent() ? ap.get().getPrecioUnitario() : BigDecimal.ZERO;
+        BigDecimal costoPedido = ap.isPresent() ? ap.get().getCargosPedido() : BigDecimal.ZERO;
 
         return ArticuloDTO.builder()
                 .codArticulo(articulo.getCodArticulo())
@@ -264,7 +264,7 @@ public class ArticuloService {
             throw new IllegalStateException("No se puede dar de baja: El artículo tiene unidades en stock.");
         }
 
-        ArticuloProveedor ap = articulo.getRelacionesConProveedores();
+        Optional<ArticuloProveedor> ap = articuloProveedorRepository.findByArticuloAndProveedor(articulo,articulo.getProveedorPredeterminado());
 
         boolean tieneOrdenesRelacionadas = ap != null &&
                 ordenCompraRepository.existsByDetalles_ArticuloProveedorAndEstado_CodEstadoOCIn(

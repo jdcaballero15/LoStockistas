@@ -41,9 +41,9 @@ public class Articulo {
     @JoinColumn(name = "proveedor_id")
     private Proveedor proveedorPredeterminado;
 
-    @OneToOne(mappedBy = "articulo", cascade = CascadeType.ALL)
+    /*@OneToMany(mappedBy = "articulo", cascade = CascadeType.ALL)
     @JsonManagedReference
-    private ArticuloProveedor relacionesConProveedores;
+    private ArticuloProveedor relacionesConProveedores;*/
 
     @Enumerated(EnumType.STRING) // Guarda como 'LOTEFIJO' o 'INTERVALOFIJO' en la DB
     @Column(nullable = false)
