@@ -57,6 +57,28 @@ public class OrdenCompraController {
     }
 
     //-----------------------------------------------------------------------------------------------
+    // Obtiene todas las órdenes de compra asociadas a un artículo determinado
+    @GetMapping("/articulo/{codArticulo}/activas")
+    public ResponseEntity<List<OrdenCompra>> getOrdenesCompraByArticuloActivas(@PathVariable Integer codArticulo) {
+        List<OrdenCompra> ordenes = ordenCompraService.getOrdenesCompraByArticulo(codArticulo);
+
+
+        if (ordenes.isEmpty()) {
+            // Si no se encuentran órdenes, devuelve un estado 204 No Content.
+            return ResponseEntity.noContent().build();
+        }
+        // Si se encuentran órdenes, devuelve un estado 200 OK con la lista.
+        return ResponseEntity.ok(
+                ordenes.stream()
+                        .filter(oc -> {
+                            int estado = oc.getEstado().getCodEstadoOC();
+                            return estado == 1 || estado == 2;
+                        })
+                        .toList()
+        );
+    }
+
+    //-----------------------------------------------------------------------------------------------
     // Crea una nueva orden de compra manualmente
     @PostMapping
     public ResponseEntity<OrdenCompra> create(@RequestBody OrdenCompraDTO dto) {
