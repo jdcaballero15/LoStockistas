@@ -1,20 +1,15 @@
 package com.stockistas.stockistas2025;
 
-import com.stockistas.stockistas2025.Dto.VentaDTO;
-import com.stockistas.stockistas2025.Entity.*;
 import com.stockistas.stockistas2025.Repository.*;
 import com.stockistas.stockistas2025.Service.OrdenCompraService;
 import com.stockistas.stockistas2025.Service.VentaService;
-import jakarta.persistence.*;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Optional;
+
 @EnableScheduling
 @SpringBootApplication
 public class Stockistas2025Application {
