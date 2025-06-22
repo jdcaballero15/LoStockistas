@@ -63,4 +63,8 @@ public class ArticuloProveedorService {
     }
 
     //-----------------------------------------------------------------------------------------------
+
+    public List<ArticuloProveedor> obtenerPorArticulo(Articulo articulo) {
+        return articuloProveedorRepo.findByArticulo(articulo);
+    }
 }

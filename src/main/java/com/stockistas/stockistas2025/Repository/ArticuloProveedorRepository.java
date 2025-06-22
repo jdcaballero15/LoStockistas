@@ -21,4 +21,5 @@ public interface ArticuloProveedorRepository extends JpaRepository<ArticuloProve
     //Busco por artículo
     List<ArticuloProveedor> findByArticulo(Articulo articulo);
     //-----------------------------------------------------------------------------------------------
+
 }

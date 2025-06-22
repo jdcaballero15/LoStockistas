@@ -2,6 +2,7 @@ package com.stockistas.stockistas2025.Controller;
 
 import com.stockistas.stockistas2025.Dto.ArticuloProveedorDTO;
 import com.stockistas.stockistas2025.Entity.ArticuloProveedor;
+import com.stockistas.stockistas2025.Repository.ArticuloRepository;
 import com.stockistas.stockistas2025.Service.ArticuloProveedorService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.util.List;
 public class ArticuloProveedorController {
 
     private final ArticuloProveedorService service;
+    private final ArticuloRepository articuloRepository;
 
     //-----------------------------------------------------------------------------------------------
     // Crea una relación entre un artículo y un proveedor, a partir del DTO recibido
@@ -47,4 +49,14 @@ public class ArticuloProveedorController {
     }
 
     //-----------------------------------------------------------------------------------------------
+    @GetMapping("/articulo/{codArticulo}")
+    public ResponseEntity<List<ArticuloProveedor>> obtenerPorArticulo(@PathVariable Integer codArticulo) {
+        return articuloRepository.findById(codArticulo)
+                .map(articulo -> {
+                    List<ArticuloProveedor> relaciones = service.obtenerPorArticulo(articulo);
+                    return ResponseEntity.ok(relaciones);
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
 }
