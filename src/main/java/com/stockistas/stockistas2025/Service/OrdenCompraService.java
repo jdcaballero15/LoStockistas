@@ -21,6 +21,7 @@ public class OrdenCompraService {
     private final OrdenCompraRepository ordenCompraRepository;
     private final EstadoOCRepository estadoOCRepository;
     private final ArticuloProveedorRepository articuloProveedorRepository;
+    private final ProveedorRepository proveedorRepository;
 
     //-----------------------------------------------------------------------------------------------
     /*
@@ -146,7 +147,8 @@ public class OrdenCompraService {
         Articulo articulo = articuloRepository.findById(dto.getCodArticulo())
                 .orElseThrow(() -> new EntityNotFoundException("Artículo no encontrado"));
 
-        Proveedor proveedor = articulo.getProveedorPredeterminado();
+        Proveedor proveedor = proveedorRepository.findById(dto.getCodProveedor())
+                .orElseThrow(() -> new EntityNotFoundException("Proveedor no encontrado"));
 
         ArticuloProveedor relacion = articuloProveedorRepository
                 .findByArticuloAndProveedor(articulo, proveedor)
@@ -156,30 +158,26 @@ public class OrdenCompraService {
                 .orElseThrow(() -> new EntityNotFoundException("Estado PENDIENTE no encontrado"));
 
         //Verifico que la cantidad a comprar no sobrepase mi límite máximo
-        Integer cantidad;
         if (dto.getCantidad() != null) {
-            if (dto.getCantidad() > articulo.getInventarioMax()) {
+            if (dto.getCantidad() > articulo.getInventarioMax() - articulo.getStockActual()) {
                 throw new IllegalArgumentException("La cantidad solicitada excede el inventario máximo permitido para este artículo.");
             }
-            cantidad = dto.getCantidad();
-        } else {
-            cantidad = articulo.getLoteOptimo(); // Valor por defecto
         }
 
         BigDecimal subtotalUnitario = relacion.getPrecioUnitario().add(relacion.getCargosPedido());
 
         OrdenCompra oc = OrdenCompra.builder()
                 .estado(estadoPendiente)
-                .cantArt(cantidad)
-                .proveedor(articulo.getProveedorPredeterminado())
+                .cantArt(dto.getCantidad())
+                .proveedor(proveedor)
                 .build();
 
         // Crear un detalle por cada relación ArticuloProveedor para el artículo
         List<DetalleOrdenCompra> detalles = new ArrayList<>();
-        Optional<ArticuloProveedor> ap = articuloProveedorRepository.findByArticuloAndProveedor(articulo,articulo.getProveedorPredeterminado());
+        Optional<ArticuloProveedor> ap = articuloProveedorRepository.findByArticuloAndProveedor(articulo,proveedor);
             BigDecimal subtotal = ap.get().getPrecioUnitario()
                     .add(ap.get().getCargosPedido())
-                    .multiply(BigDecimal.valueOf(cantidad));
+                    .multiply(BigDecimal.valueOf(dto.getCantidad()))    ;
 
             detalles.add(DetalleOrdenCompra.builder()
                     .articuloProveedor(ap.get())

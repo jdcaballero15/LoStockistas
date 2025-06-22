@@ -12,4 +12,5 @@ public class ArticuloProveedorDTO {
     private BigDecimal precioUnitario;
     private BigDecimal cargosPedido;
     private Integer demoraEntregaDias;
+    private ProveedorDTOOutput proveedorDTOOutput;
 }
