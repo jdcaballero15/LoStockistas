@@ -26,9 +26,9 @@ public class InventarioScheduler {
 
     //-----------------------------------------------------------------------------------------------
     // Se ejecuta cada 2min
-    @Scheduled(cron = "0 */2 * * * *")
+    @Scheduled(cron = "0 */1 * * * *")
     public void verificarStockIntervaloFijo() {
-
+        System.out.println("Se esta ejecutando el daemon");
         //Busco todos los artículos con modelo intervalo fijo
         List<Articulo> articulos = articuloRepository.findByModeloInventario(ModeloInventario.INTERVALOFIJO);
 
@@ -40,8 +40,18 @@ public class InventarioScheduler {
             LocalDateTime ultimaFecha = articulo.getFechaUltimoPedido();
             LocalDateTime ahora = LocalDateTime.now();
 
-            // Si nunca se hizo pedido, lo forzamos
-            if (ultimaFecha == null || ultimaFecha.plusDays(intervaloDias).isBefore(ahora)) {
+            // Verificar si debe generar orden de compra
+            boolean debeGenerarOrden = false;
+
+            if (ultimaFecha == null) {
+                // Si nunca se hizo pedido, lo forzamos
+                debeGenerarOrden = true;
+            } else if (ultimaFecha.plusDays(intervaloDias).isBefore(ahora)) {
+                // Si ha pasado el intervalo desde el último pedido
+                debeGenerarOrden = true;
+            }
+
+            if (debeGenerarOrden) {
                 Optional<OrdenCompra> oc = ordenCompraService.generarOrdenCompraSiCorresponde(articulo.getCodArticulo());
                 if (oc.isPresent()) {
                     articulo.setFechaUltimoPedido(ahora);

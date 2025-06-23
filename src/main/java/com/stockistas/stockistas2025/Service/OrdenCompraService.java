@@ -64,31 +64,31 @@ public class OrdenCompraService {
 
         // Crear un detalle por cada relación ArticuloProveedor para el artículo (En principio seria solo 1, pero si se compran más artículos a ese proveedor el sistema esta preparado)
         List<DetalleOrdenCompra> detalles = new ArrayList<>();
-        Optional<ArticuloProveedor> ap = articuloProveedorRepository.findByArticuloAndProveedor(articulo,articulo.getProveedorPredeterminado());
-            BigDecimal subtotal = ap.get().getPrecioUnitario()
-                    .add(ap.get().getCargosPedido())
-                    .multiply(BigDecimal.valueOf(cantidadFaltante));
+        Optional<ArticuloProveedor> ap = articuloProveedorRepository.findByArticuloAndProveedor(articulo, articulo.getProveedorPredeterminado());
+        BigDecimal subtotal = ap.get().getPrecioUnitario()
+                .add(ap.get().getCargosPedido())
+                .multiply(BigDecimal.valueOf(cantidadFaltante));
 
-            detalles.add(DetalleOrdenCompra.builder()
-                    .articuloProveedor(ap.get())
-                    .subTotal(subtotal)
-                    .build());
+        detalles.add(DetalleOrdenCompra.builder()
+                .articuloProveedor(ap.get())
+                .subTotal(subtotal)
+                .build());
 
-            //Seteo los detalles a la Orden de compra
-            oc.setDetalles(detalles);
+        //Seteo los detalles a la Orden de compra
+        oc.setDetalles(detalles);
 
-            // Calcular monto total
-            BigDecimal montoTotal = detalles.stream()
+        // Calcular monto total
+        BigDecimal montoTotal = detalles.stream()
                 .map(DetalleOrdenCompra::getSubTotal)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-            oc.setMontoCompra(montoTotal);
+        oc.setMontoCompra(montoTotal);
 
-            // Guardar la orden de compra con toda su información
-            OrdenCompra guardada = ordenCompraRepository.save(oc);
+        // Guardar la orden de compra con toda su información
+        OrdenCompra guardada = ordenCompraRepository.save(oc);
 
-            //Asígno la fecha de ultimo pedido (Solo se utiliza en INTERVALO FIJO)
-            articulo.setFechaUltimoPedido(LocalDateTime.now());
-            articuloRepository.save(articulo);
+        //Asígno la fecha de ultimo pedido (Solo se utiliza en INTERVALO FIJO)
+        articulo.setFechaUltimoPedido(LocalDateTime.now());
+        articuloRepository.save(articulo);
 
         return Optional.of(guardada);
     }
@@ -121,24 +121,21 @@ public class OrdenCompraService {
 
         if (modelo == ModeloInventario.LOTEFIJO) {
             int puntoDePedido = articulo.getPuntoPedido();
-            if (stockActual <= puntoDePedido+articulo.getStockSeguridad()) {
-                int loteOptimo = articulo.getLoteOptimo();
-                return loteOptimo;
+            if (stockActual <= puntoDePedido + articulo.getStockSeguridad()) {
+                return articulo.getLoteOptimo();
             } else {
                 return 0;
             }
-        } else if (modelo == ModeloInventario.INTERVALOFIJO) {
-            int stockSeguridad = articulo.getStockSeguridad();
-            if (stockActual <= stockSeguridad) {
-                int inventarioMaximo = articulo.getInventarioMax();
+        } else /*(modelo == ModeloInventario.INTERVALOFIJO)*/{
+            int inventarioMaximo = articulo.getInventarioMax();
 
-                return inventarioMaximo - stockActual;
-            } else {
-                return 0;
-            }
+            return inventarioMaximo - stockActual;
         }
-        return 0; // Por seguridad
     }
+
+
+
+
 
     //-----------------------------------------------------------------------------------------------
     //Creo una orden de compra manualmente
